@@ -6,7 +6,7 @@ Kíndynos VaR, incluidos su código fuente, su diseño, sus textos y su document
 
 ## 1. Uso permitido
 
-Se autoriza de forma gratuita el uso del aplicativo publicado en https://mgomezr1.github.io/kindynos-var/ con fines académicos: docencia, aprendizaje, trabajos de curso e investigación sin ánimo de lucro.
+Se autoriza de forma gratuita el uso del aplicativo publicado en https://mgomezr1.github.io/kindynos-VaR/ con fines académicos: docencia, aprendizaje, trabajos de curso e investigación sin ánimo de lucro.
 
 ## 2. Condiciones
 

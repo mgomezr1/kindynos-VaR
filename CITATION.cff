@@ -1,14 +1,15 @@
 cff-version: 1.2.0
 message: "Si usa este software, cítelo con estos datos."
 title: "Kíndynos VaR"
-version: "1.0"
-date-released: "2026-09-22"
+version: "2.0"
+date-released: "2026-09-23"
 type: software
 authors:
   - family-names: "Gómez Rueda"
     given-names: "Mario Sergio"
     email: "mgomezr1@gmail.com"
-url: "https://mgomezr1.github.io/kindynos-var/"
-abstract: "Aplicación web académica para calcular el valor en riesgo paramétrico de un activo, con Expected Shortfall, volatilidad EWMA, prueba de normalidad, backtesting de Kupiec y análisis de límites."
-keywords: ["valor en riesgo", "VaR", "Expected Shortfall", "riesgo de mercado", "backtesting", "Kupiec"]
-license-url: "https://mgomezr1.github.io/kindynos-var/LICENSE.md"
+url: "https://mgomezr1.github.io/kindynos-VaR/"
+repository-code: "https://github.com/mgomezr1/kindynos-VaR"
+abstract: "Aplicación web académica para la estimación y el diagnóstico del riesgo de mercado: VaR paramétrico, Expected Shortfall, volatilidad EWMA, diagnóstico de normalidad, backtesting de Kupiec, semáforo de Basilea y frontera de riesgo, con un estándar de datos matricial de 1 a n activos."
+keywords: ["valor en riesgo", "VaR", "Expected Shortfall", "riesgo de mercado", "backtesting", "Kupiec", "frontera de riesgo"]
+license-url: "https://github.com/mgomezr1/kindynos-VaR/blob/main/LICENSE.md"

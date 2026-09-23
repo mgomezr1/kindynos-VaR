@@ -1,30 +1,33 @@
 # Kíndynos VaR
 
-Aplicación web académica para calcular el **valor en riesgo (VaR) paramétrico** de una posición en un activo: estime la volatilidad a partir de una serie de precios, obtenga el VaR y el Expected Shortfall con el nivel de confianza y el horizonte que elija, y valide el modelo con backtesting.
+**Riesgo de mercado. Mida el riesgo. Evalúe el modelo. Explore sus límites.**
 
-**Abrir la aplicación:** https://mgomezr1.github.io/kindynos-var/
+Aplicación web académica para la estimación y el diagnóstico del riesgo de mercado mediante VaR paramétrico, Expected Shortfall, backtesting y análisis de robustez. El VaR estima un umbral de pérdida que solo debería excederse con una probabilidad determinada durante el horizonte elegido.
+
+**Abrir la aplicación:** https://mgomezr1.github.io/kindynos-VaR/
 
 No requiere instalación ni registro. Funciona en cualquier navegador moderno, en computador, tableta o teléfono.
 
 ## Qué permite hacer
 
-- Pegar una serie de precios o cargar un CSV, con revisión de calidad en vivo; o ingresar directamente la media y la volatilidad diarias.
-- Elegir rendimientos logarítmicos o simples, volatilidad muestral o EWMA (RiskMetrics), y VaR con media o con media cero.
-- Calcular el VaR y el Expected Shortfall para varios niveles de confianza y cualquier horizonte con la regla de la raíz del tiempo.
-- Revisar el supuesto de normalidad con asimetría, curtosis y la prueba de Jarque Bera.
+- Cargar una matriz de precios con el estándar de datos Kíndynos (fecha u orden y una columna por activo, de 1 a n activos) desde CSV, Excel o pegado, con plantillas descargables, validación detallada y vista previa; o ingresar una media y una volatilidad conocidas.
+- Elegir el activo a analizar sin volver a cargar los datos.
+- Partir de configuraciones con respaldo metodológico (RiskMetrics o Basilea) o definir la propia: rendimientos logarítmicos o simples, volatilidad muestral o EWMA, rendimiento esperado incluido o μ = 0.
+- Obtener el resumen de riesgo (exposición, VaR, Expected Shortfall y uso del límite) con una lectura narrativa del resultado.
+- Diagnosticar el modelo: normalidad con Jarque Bera y excepciones dentro de la muestra.
 - Validar el modelo con backtesting, la prueba de Kupiec y el semáforo del Comité de Basilea.
-- Saber qué posición, volatilidad, nivel de confianza u horizonte llevarían el VaR a un límite de riesgo.
-- Descargar los resultados en Excel, con fórmulas reales, y un informe ejecutivo en PDF.
+- Explorar la frontera de riesgo: qué posición, volatilidad, confianza u horizonte llevarían el VaR al límite, y el margen disponible.
+- Descargar un modelo auditable en Excel, con fórmulas reales, y un informe ejecutivo en PDF.
 
 ## Cómo usarla
 
-1. Lea la sección «El método» y mueva el deslizador de la portada para ver cómo cambia la cola de pérdida.
-2. En **Configuración**, escriba el activo, la posición, el horizonte y los niveles de confianza, elija las variantes y confirme.
-3. En **Datos**, pegue la serie de precios o cargue un archivo CSV, o escriba la media y la volatilidad. Pulse **Calcular el VaR**.
-4. Revise los **Resultados** y la **Robustez**: normalidad, backtesting y límite.
-5. Descargue el **Excel** o el **informe PDF**.
+1. **Método:** revise qué calcula Kíndynos y sus supuestos.
+2. **Modelo:** defina posición, horizonte, confianza y límite; ajuste la configuración avanzada si lo necesita, y confirme.
+3. **Datos:** descargue la plantilla, llénela y cárguela (o use el ejemplo); revise la validación y elija el activo. Pulse **Calcular el VaR**.
+4. **Riesgo** y **Robustez:** lea el resumen, el diagnóstico, el backtesting y la frontera de riesgo.
+5. **Informe:** descargue el Excel o el PDF.
 
-El **modo de prueba** carga cinco escenarios con datos ficticios para practicar; esos datos no describen un activo real y los archivos exportados llevan el prefijo PRUEBA_.
+«Usar un ejemplo» y los escenarios de prueba de «Acerca de Kíndynos» cargan datos ficticios para practicar; los archivos exportados con esos datos llevan el prefijo PRUEBA_.
 
 ## Privacidad
 
@@ -33,15 +36,19 @@ Todos los cálculos se hacen en su navegador. Los datos no se envían a ningún 
 ## Requisitos
 
 - Navegador actualizado (Chrome, Edge, Firefox o Safari) con JavaScript activo.
-- Conexión a internet para exportar a Excel, porque la aplicación descarga la biblioteca SheetJS. El informe PDF funciona sin conexión.
+- Conexión a internet para el Excel de resultados, la plantilla Excel y la lectura de archivos Excel, porque la aplicación descarga la biblioteca SheetJS. El PDF, la plantilla CSV y la lectura de CSV funcionan sin conexión.
 
 ## Documentación
 
-La guía completa (método, fórmulas, funciones, exportaciones, verificación y limitaciones) está en [docs/Guia_Kindynos_VaR.md](docs/Guia_Kindynos_VaR.md).
+La guía técnica (estándar de datos, fórmulas, funciones, exportaciones, verificación y limitaciones) está en [docs/Guia_Kindynos_VaR.md](docs/Guia_Kindynos_VaR.md).
+
+## Validación
+
+La aplicación incluye 37 pruebas automáticas («Acerca de Kíndynos», «Ejecutar verificación»). La versión 2.0 reproduce exactamente las cifras de la versión 1.0, coincide con un cálculo independiente en Python (SciPy) y sus libros de Excel se recalculan sin errores en LibreOffice.
 
 ## Cómo citar
 
-Gómez Rueda, M. S. (2026). *Kíndynos VaR* (Versión 1.0) [Software]. https://mgomezr1.github.io/kindynos-var/
+Gómez Rueda, M. S. (2026). *Kíndynos VaR* (Versión 2.0) [Software]. https://mgomezr1.github.io/kindynos-VaR/
 
 ## Autoría y uso
 
@@ -58,4 +65,4 @@ Este aplicativo fue desarrollado por Mario Sergio Gómez Rueda. Su uso es de car
 
 ## Componentes de terceros
 
-La exportación a Excel usa [SheetJS Community Edition](https://sheetjs.com), distribuida bajo la licencia Apache 2.0 y cargada desde cdn.sheetjs.com.
+La exportación a Excel y la lectura de archivos Excel usan [SheetJS Community Edition](https://sheetjs.com), distribuida bajo la licencia Apache 2.0 y cargada desde cdn.sheetjs.com.

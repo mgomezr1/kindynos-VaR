@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Kíndynos VaR: valor en riesgo paramétrico de un activo, con Expected Shortfall, backtesting de Kupiec y análisis de límites. Uso académico.">
+<meta name="description" content="Kíndynos VaR: estimación y diagnóstico del riesgo de mercado con VaR paramétrico, Expected Shortfall, backtesting y frontera de riesgo. Uso académico.">
 <meta name="author" content="Mario Sergio Gómez Rueda">
 <title>Kíndynos VaR</title>
 <!-- Única dependencia externa: SheetJS, solo para generar el archivo de Excel -->
@@ -148,9 +148,13 @@ code { font-family: var(--fuente-cifras); font-size: 0.86em; background: var(--v
 .pasos a[aria-current="true"] { background: var(--relieve); color: var(--texto); }
 .pasos .num { font-family: var(--fuente-cifras); font-size: 0.8rem; color: var(--texto-3); }
 .pasos a[aria-current="true"] .num { color: var(--calma); }
-.estado-paso { width: 9px; height: 9px; border-radius: 50%; background: transparent; }
+.estado-paso { width: 17px; height: 17px; border-radius: 50%; background: transparent; display: grid; place-items: center; font-size: 11px; font-weight: 800; line-height: 1; color: var(--abismo); }
 .estado-paso[data-estado="listo"] { background: var(--calma); box-shadow: 0 0 0 4px rgba(var(--calma-rgb), 0.15); }
+.estado-paso[data-estado="listo"]::after { content: "✓"; }
 .estado-paso[data-estado="atencion"] { background: var(--brasa); box-shadow: 0 0 0 4px rgba(var(--brasa-rgb), 0.18); }
+.estado-paso[data-estado="atencion"]::after { content: "!"; }
+.paso-secundario { margin-top: 0.8rem; padding-top: 0.8rem; box-shadow: 0 -1px 0 rgba(236, 238, 255, 0.07); }
+.paso-secundario .num { font-style: italic; }
 .riel-pie { margin-top: auto; font-size: 0.76rem; color: var(--texto-3); line-height: 1.45; }
 
 .lienzo { margin-left: var(--ancho-riel); padding: 2.4rem clamp(1rem, 4vw, 3.6rem) 5rem; max-width: 1240px; }
@@ -326,6 +330,97 @@ td.envuelve { white-space: normal; min-width: 240px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* =========================================================================
+   VERSIÓN 2: PORTADA, MÉTODO, DATOS, RIESGO, ROBUSTEZ Y ACERCA DE
+   ========================================================================= */
+.intro-portada { color: var(--texto-2); max-width: 70ch; }
+.portada .lema { color: var(--texto); font-size: 1.2rem; }
+
+/* Cadena del método y ruta de la decisión */
+.cadena { list-style: none; margin: 1.2rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem 0; align-items: stretch; }
+.cadena li { display: flex; flex-direction: column; justify-content: center; background: var(--relieve); border-radius: var(--r-control); padding: 0.6rem 0.9rem; min-width: 118px; }
+.cadena li + li { margin-left: 1.6rem; position: relative; }
+.cadena li + li::before { content: "→"; position: absolute; left: -1.25rem; top: 50%; transform: translateY(-50%); color: var(--calma); font-weight: 700; }
+.cadena strong { font-size: 0.95rem; }
+.cadena span { font-size: 0.8rem; color: var(--texto-3); }
+.cadena.flujo li { min-width: 0; background: var(--hondo); }
+.cadena.flujo li:last-child { background: rgba(var(--calma-rgb), 0.16); color: var(--calma); }
+
+/* Configuración avanzada */
+.resumen-avanzada { font-weight: 400; font-size: 0.84rem; color: var(--texto-3); margin-left: 0.6rem; }
+
+/* Carga de datos */
+.separador-acciones { flex: 1 1 0; }
+.zona-carga { position: relative; margin-top: 1rem; background: var(--hondo); border-radius: var(--r-bloque); padding: 1.3rem 1.2rem; text-align: center; box-shadow: inset 0 0 0 1.5px rgba(236, 238, 255, 0.1); transition: box-shadow var(--t-rapida) var(--curva), background var(--t-rapida) var(--curva); }
+.zona-carga p { margin: 0.2rem auto; }
+.zona-carga.arrastrando { background: rgba(var(--calma-rgb), 0.08); box-shadow: inset 0 0 0 2px var(--calma); }
+.zona-carga:focus-within { box-shadow: inset 0 0 0 2px var(--calma); }
+.zona-carga input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.enlace-archivo { color: var(--calma); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; font-weight: 600; }
+.privacidad { margin-top: 0.7rem; }
+.ficha-datos { background: var(--relieve); border-radius: var(--r-bloque); padding: 1rem 1.2rem; margin-top: 1rem; }
+.ficha-datos h4 { margin: 0 0 0.3rem; font-size: 1rem; }
+.ficha-datos .cifras-ficha { display: flex; flex-wrap: wrap; gap: 0.4rem 1.4rem; font-size: 0.9rem; color: var(--texto-2); margin: 0.3rem 0 0.5rem; }
+.ficha-datos .cifras-ficha strong { color: var(--texto); }
+.estado-ficha { display: inline-block; margin-top: 0.4rem; font-weight: 650; }
+.estado-ficha[data-e="ok"] { color: var(--calma); }
+.estado-ficha[data-e="mal"] { color: var(--brasa); }
+.celda-vacia { color: var(--texto-3); font-style: italic; }
+
+/* Resumen de riesgo */
+.resumen-riesgo { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; margin-top: 0.8rem; }
+.resumen-riesgo .bloque { position: relative; }
+.resumen-riesgo .rotulo { font-size: 0.8rem; color: var(--texto-2); text-transform: uppercase; letter-spacing: 0.06em; }
+.resumen-riesgo .valor { font-family: var(--fuente-cifras); font-size: clamp(1.35rem, 2.6vw, 1.85rem); font-weight: 700; margin-top: 0.3rem; overflow-wrap: anywhere; }
+.resumen-riesgo .detalle { font-size: 0.84rem; color: var(--texto-2); margin-top: 0.2rem; }
+.resumen-riesgo .var .valor { color: var(--brasa); }
+.resumen-riesgo .es .valor { color: #FF9C8C; }
+.resumen-riesgo .uso[data-e="ok"] .valor { color: var(--calma); }
+.resumen-riesgo .uso[data-e="mal"] .valor { color: var(--advertencia); }
+.lectura-resultado { margin-top: 1.2rem; max-width: 74ch; }
+.lectura-resultado p { font-size: 1.04rem; margin: 0 0 0.6rem; }
+.fila-titulo { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; }
+.subtitulo { font-size: 1rem; font-weight: 650; margin: 1.5rem 0 0.4rem; color: var(--texto); }
+
+/* Robustez */
+.pregunta { font-size: 1.2rem; }
+.subbloques { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.subbloques .bloque h4 { margin: 0 0 0.2rem; font-size: 1rem; }
+.subbloques .bloque .nota { margin-top: 0.2rem; }
+.veredicto { font-weight: 650; margin: 0.6rem 0 0; }
+.veredicto[data-e="ok"] { color: var(--calma); }
+.veredicto[data-e="alerta"] { color: var(--advertencia); }
+.veredicto[data-e="mal"] { color: var(--brasa); }
+.resumen-bt { display: flex; flex-wrap: wrap; gap: 0.4rem 1.6rem; margin: 1rem 0 0; font-size: 0.95rem; color: var(--texto-2); }
+.resumen-bt strong { color: var(--texto); font-family: var(--fuente-cifras); }
+.frontera { background: var(--relieve); border-radius: var(--r-bloque); padding: 1.1rem 1.2rem; margin-top: 1rem; }
+.barra-limite { position: relative; height: 16px; border-radius: 999px; background: var(--hondo); margin: 1.4rem 0 1.8rem; }
+.barra-limite .relleno { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--calma); }
+.barra-limite[data-e="mal"] .relleno { background: var(--brasa); }
+.barra-limite .marca-limite { position: absolute; top: -8px; bottom: -8px; width: 3px; border-radius: 2px; background: var(--advertencia); }
+.barra-limite .rotulo-limite { position: absolute; top: 22px; transform: translateX(-50%); font-size: 0.78rem; color: var(--advertencia); white-space: nowrap; }
+.cifras-frontera { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.8rem; margin-top: 0.4rem; }
+.cifras-frontera div { background: var(--hondo); border-radius: var(--r-control); padding: 0.7rem 0.9rem; }
+.cifras-frontera span { display: block; font-size: 0.8rem; color: var(--texto-3); }
+.cifras-frontera strong { font-family: var(--fuente-cifras); font-size: 1.05rem; }
+
+/* Informe y Acerca de */
+.rotulo-salida { margin: 0; font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--calma); }
+.acerca h3 { font-size: 1.02rem; }
+.acerca .encabezado-seccion .num { font-style: italic; }
+
+@media (max-width: 980px) {
+  .paso-secundario { margin-top: 0; padding-top: 0; box-shadow: none; }
+}
+@media (max-width: 520px) {
+  .cadena li { min-width: 0; padding: 0.5rem 0.7rem; }
+  .cadena li + li { margin-left: 1.3rem; }
+  .cadena li + li::before { left: -1.05rem; }
+  .resumen-riesgo { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .resumen-riesgo .bloque { padding: 0.8rem; }
+  .separador-acciones { display: none; }
+}
 </style>
 </head>
 <body>
@@ -338,16 +433,16 @@ td.envuelve { white-space: normal; min-width: 240px; }
       <path d="M4 29 C 10 29, 12 9, 19 9 S 28 29, 34 29" fill="none" stroke="#7FE0C4" stroke-width="2.4" stroke-linecap="round"/>
       <path d="M4 29 C 7 29, 8.5 25, 10 21 L 10 29 Z" fill="#FF6F5B"/>
     </svg>
-    <span><strong id="marcaNombre">Kíndynos VaR</strong><span id="marcaVersion">Valor en riesgo paramétrico</span></span>
+    <span><strong id="marcaNombre">Kíndynos VaR</strong><span id="marcaVersion">Riesgo de mercado</span></span>
   </a>
   <ol class="pasos" id="listaPasos">
-    <li><a href="#seccionMetodo" data-paso="metodo"><span class="num">00</span><span class="texto-paso">El método</span><span class="estado-paso"></span></a></li>
-    <li><a href="#seccionConfiguracion" data-paso="configuracion"><span class="num">01</span><span class="texto-paso">Configuración</span><span class="estado-paso" id="estadoConfiguracion"></span></a></li>
+    <li><a href="#seccionMetodo" data-paso="metodo"><span class="num">00</span><span class="texto-paso">Método</span><span class="estado-paso"></span></a></li>
+    <li><a href="#seccionConfiguracion" data-paso="modelo"><span class="num">01</span><span class="texto-paso">Modelo</span><span class="estado-paso" id="estadoConfiguracion"></span></a></li>
     <li><a href="#seccionDatos" data-paso="datos"><span class="num">02</span><span class="texto-paso">Datos</span><span class="estado-paso" id="estadoDatos"></span></a></li>
-    <li><a href="#seccionResultados" data-paso="resultados"><span class="num">03</span><span class="texto-paso">Resultados</span><span class="estado-paso" id="estadoResultados"></span></a></li>
+    <li><a href="#seccionResultados" data-paso="riesgo"><span class="num">03</span><span class="texto-paso">Riesgo</span><span class="estado-paso" id="estadoResultados"></span></a></li>
     <li><a href="#seccionRobustez" data-paso="robustez"><span class="num">04</span><span class="texto-paso">Robustez</span><span class="estado-paso" id="estadoRobustez"></span></a></li>
-    <li><a href="#seccionExportacion" data-paso="exportacion"><span class="num">05</span><span class="texto-paso">Exportación</span><span class="estado-paso" id="estadoExportacion"></span></a></li>
-    <li><a href="#seccionPruebas" data-paso="pruebas"><span class="num">06</span><span class="texto-paso">Pruebas</span><span class="estado-paso" id="estadoPruebas"></span></a></li>
+    <li><a href="#seccionExportacion" data-paso="informe"><span class="num">05</span><span class="texto-paso">Informe</span><span class="estado-paso" id="estadoExportacion"></span></a></li>
+    <li class="paso-secundario"><a href="#seccionAcerca" data-paso="acerca"><span class="num" aria-hidden="true">i</span><span class="texto-paso">Acerca de Kíndynos</span><span class="estado-paso" id="estadoPruebas"></span></a></li>
   </ol>
   <p class="riel-pie" id="rielPie"></p>
 </nav>
@@ -356,8 +451,9 @@ td.envuelve { white-space: normal; min-width: 240px; }
 
 <!-- ============================ PORTADA ============================ -->
 <section class="portada" id="portada" aria-labelledby="tituloPortada">
-  <h1 id="tituloPortada">Kíndynos VaR<small>Valor en riesgo paramétrico para un activo</small></h1>
-  <p class="lema">¿Cuánto podría perder esta posición en un mal día? Kíndynos traduce la volatilidad de un activo en una cifra de pérdida máxima esperada, con un nivel de confianza y un horizonte que usted elige.</p>
+  <h1 id="tituloPortada">Kíndynos VaR<small>Riesgo de mercado</small></h1>
+  <p class="lema"><strong>Mida el riesgo. Evalúe el modelo. Explore sus límites.</strong></p>
+  <p class="intro-portada">Estimación y diagnóstico del riesgo de mercado mediante VaR paramétrico, Expected Shortfall, backtesting y análisis de robustez. El VaR estima un umbral de pérdida que solo debería excederse con una probabilidad determinada durante el horizonte elegido.</p>
 
   <div class="curva-portada">
     <svg id="svgPortada" viewBox="0 0 720 260" role="img" aria-labelledby="tituloSvgPortada descSvgPortada">
@@ -374,70 +470,94 @@ td.envuelve { white-space: normal; min-width: 240px; }
     <div class="leyenda"><span><i style="background:var(--calma)"></i>Zona de confianza</span><span><i style="background:var(--brasa)"></i>Cola de pérdida</span></div>
   </div>
   <div class="acciones">
-    <a class="boton primario" href="#seccionConfiguracion">Empezar un análisis</a>
+    <a class="boton primario" href="#seccionConfiguracion">Iniciar análisis</a>
+    <button class="boton" id="botonEjemplo" type="button">Usar un ejemplo</button>
     <a class="boton" href="#seccionMetodo">Entender el método</a>
-    <a class="boton" href="#seccionPruebas">Cargar datos de prueba</a>
   </div>
 </section>
 
 <!-- ============================ 00 MÉTODO ============================ -->
 <section class="seccion" id="seccionMetodo" aria-labelledby="tituloMetodo">
-  <div class="encabezado-seccion"><span class="num">00</span><h2 id="tituloMetodo">El método en cinco pasos</h2></div>
-  <p class="intro">El valor en riesgo (VaR) responde una pregunta: con un nivel de confianza dado, ¿cuál es la pérdida que no debería superarse en un horizonte de tiempo? El método paramétrico, también llamado de varianza y covarianza o delta normal, supone que los rendimientos siguen una distribución normal y obtiene el VaR a partir de dos parámetros: la media y la desviación estándar.</p>
+  <div class="encabezado-seccion"><span class="num">00</span><h2 id="tituloMetodo">Método</h2></div>
+  <p class="intro">Kíndynos calcula el valor en riesgo (VaR) paramétrico, también llamado de varianza y covarianza o delta normal. Supone que los rendimientos siguen una distribución normal y obtiene el riesgo a partir de dos parámetros: la media y la volatilidad.</p>
 
-  <div class="diagrama" role="list">
-    <div role="listitem"><strong>Rendimientos</strong><span>De la serie de precios se obtienen rendimientos diarios, logarítmicos o simples.</span></div>
-    <div role="listitem"><strong>Parámetros</strong><span>Se estiman la media μ y la volatilidad σ diaria, por muestra completa o con EWMA.</span></div>
-    <div role="listitem"><strong>Cuantil</strong><span>El nivel de confianza c define el valor crítico z de la normal estándar.</span></div>
-    <div role="listitem"><strong>Horizonte</strong><span>La regla de la raíz del tiempo lleva σ y μ de un día a h días.</span></div>
-    <div role="listitem"><strong>VaR y ES</strong><span>Se multiplica por el valor de la posición y se valida con backtesting.</span></div>
-  </div>
+  <ol class="cadena" aria-label="Cadena del método">
+    <li><strong>Precios</strong><span>Serie histórica del activo</span></li>
+    <li><strong>Retornos</strong><span>Logarítmicos o simples</span></li>
+    <li><strong>Volatilidad</strong><span>Muestral o EWMA</span></li>
+    <li><strong>Distribución</strong><span>Normal, escalada a h días</span></li>
+    <li><strong>Riesgo</strong><span>VaR y Expected Shortfall</span></li>
+  </ol>
 
   <div class="panel">
-    <h3 style="margin-top:0">Fórmulas que usa la aplicación</h3>
-    <p>Valor crítico, con Φ como función de distribución normal estándar:</p>
-    <code class="formula">z = Φ⁻¹(c)</code>
-    <p>VaR como fracción de la posición, para h días. El término de la media se omite si elige la variante de media cero:</p>
-    <code class="formula">VaR% = z · σ · √h  −  μ · h</code>
-    <p>VaR en dinero, con V como valor de la posición:</p>
-    <code class="formula">VaR = V · VaR%</code>
-    <p>Expected Shortfall (ES o CVaR), la pérdida promedio cuando se supera el VaR, con φ como densidad normal estándar:</p>
-    <code class="formula">ES% = σ · √h · φ(z) / (1 − c)  −  μ · h</code>
-    <p>Volatilidad EWMA de RiskMetrics, con factor de decaimiento λ:</p>
-    <code class="formula">σ²(t) = λ · σ²(t−1) + (1 − λ) · r²(t−1)</code>
+    <h3 style="margin-top:0">Medir el riesgo no equivale a tomar una decisión</h3>
+    <p>El VaR es una estimación bajo supuestos. Antes de usarlo conviene saber si el modelo se comportó bien en el pasado y qué tan cerca está del límite que la organización tolera. Por eso el análisis sigue esta ruta:</p>
+    <ol class="cadena flujo" aria-label="Ruta de la decisión">
+      <li><strong>Datos</strong></li><li><strong>Modelo</strong></li><li><strong>Riesgo</strong></li><li><strong>Validación</strong></li><li><strong>Límite</strong></li><li><strong>Decisión</strong></li>
+    </ol>
+    <p class="nota">Los pasos de la aplicación presentan el modelo antes que los datos porque el horizonte y la ventana condicionan la revisión de la carga; la lógica de la decisión es la de esta ruta.</p>
+
+    <details>
+      <summary>Ver formulación matemática</summary>
+      <div>
+        <p>Valor crítico, con Φ como función de distribución normal estándar:</p>
+        <code class="formula">z = Φ⁻¹(c)</code>
+        <p>VaR como fracción de la posición, para h días. El término de μ se omite si se asume μ = 0:</p>
+        <code class="formula">VaR% = z · σ · √h  −  μ · h</code>
+        <p>VaR en dinero, con V como valor de la posición:</p>
+        <code class="formula">VaR = V · VaR%</code>
+        <p>Expected Shortfall (ES o CVaR), la pérdida promedio cuando se supera el VaR, con φ como densidad normal estándar:</p>
+        <code class="formula">ES% = σ · √h · φ(z) / (1 − c)  −  μ · h</code>
+        <p>Volatilidad EWMA de RiskMetrics, con factor de decaimiento λ:</p>
+        <code class="formula">σ²(t) = λ · σ²(t−1) + (1 − λ) · r²(t−1)</code>
+        <p>Margen frente al límite L:</p>
+        <code class="formula">Margen = (L − VaR) / L</code>
+      </div>
+    </details>
     <details>
       <summary>Supuestos y cuándo desconfiar del resultado</summary>
       <div>
-        <p><strong>Normalidad.</strong> Los rendimientos financieros suelen tener colas más gruesas que la normal. Si la prueba de Jarque Bera la rechaza, el VaR paramétrico tiende a subestimar las pérdidas extremas, sobre todo al 99 %.</p>
-        <p><strong>Raíz del tiempo.</strong> Escalar con √h exige rendimientos independientes e idénticamente distribuidos. Con autocorrelación o volatilidad cambiante la regla es solo una aproximación. El Comité de Basilea la aceptó para pasar de 1 a 10 días.</p>
-        <p><strong>Conversión a dinero.</strong> Multiplicar el VaR porcentual por V es la aproximación lineal del método delta normal. Con rendimientos logarítmicos la pérdida exacta sería V · (1 − e^(−VaR%)), un poco menor.</p>
-        <p><strong>Un solo activo.</strong> Esta versión no agrega posiciones ni considera correlaciones. Para un portafolio se necesita la matriz de covarianzas.</p>
+        <div class="tabla-contenedor">
+          <table>
+            <caption>Supuestos del modelo y dónde los revisa Kíndynos</caption>
+            <thead><tr><th scope="col">Supuesto</th><th scope="col">Qué ocurre si no se cumple</th><th scope="col">Dónde se revisa</th></tr></thead>
+            <tbody>
+              <tr><td>Normalidad</td><td class="envuelve">Los rendimientos financieros suelen tener colas más gruesas que la normal; el VaR subestima las pérdidas extremas, sobre todo al 99 %.</td><td class="envuelve">Diagnóstico del modelo, con la prueba de Jarque Bera (paso 03).</td></tr>
+              <tr><td>Independencia</td><td class="envuelve">La regla de la raíz del tiempo exige rendimientos independientes; con autocorrelación el VaR a h días es solo una aproximación. Basilea la aceptó para pasar de 1 a 10 días.</td><td class="envuelve">Advertencia cuando h &gt; 1. Esta versión no la prueba estadísticamente.</td></tr>
+              <tr><td>Estabilidad de σ</td><td class="envuelve">Si la volatilidad cambia en el tiempo, una estimación muestral reacciona tarde y las excepciones se agrupan.</td><td class="envuelve">Comparación entre volatilidad muestral y EWMA (Tabla 1) y backtesting (paso 04).</td></tr>
+              <tr><td>Linealidad</td><td class="envuelve">Multiplicar el VaR porcentual por V es la aproximación lineal del método delta normal. Con rendimientos logarítmicos la pérdida exacta sería V · (1 − e^(−VaR%)), un poco menor.</td><td class="envuelve">Advertencia cuando la volatilidad del horizonte supera el 25 %.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="nota">Esta versión analiza un activo a la vez. Aunque la matriz de datos admite varios, el VaR de portafolio, que requiere la matriz de covarianzas, será una etapa posterior.</p>
       </div>
     </details>
-    <details>
-      <summary>Referencias</summary>
-      <div id="listaReferencias"></div>
-    </details>
+    <p class="nota">Referencias completas en <a href="#seccionAcerca">Acerca de Kíndynos</a>.</p>
   </div>
 </section>
 
-<!-- ============================ 01 CONFIGURACIÓN ============================ -->
+<!-- ============================ 01 MODELO ============================ -->
 <section class="seccion" id="seccionConfiguracion" aria-labelledby="tituloConfiguracion">
-  <div class="encabezado-seccion"><span class="num">01</span><h2 id="tituloConfiguracion">Configuración del modelo</h2></div>
-  <p class="intro">Defina la posición, los niveles de confianza, el horizonte y la forma de estimar la volatilidad. Cada dato se valida al salir del campo.</p>
+  <div class="encabezado-seccion"><span class="num">01</span><h2 id="tituloConfiguracion">Modelo</h2></div>
+  <p class="intro">¿Bajo qué supuestos y parámetros? Defina la posición, el horizonte, la confianza y el límite. Los parámetros avanzados tienen valores razonables por defecto.</p>
 
   <div class="panel">
-    <div class="rejilla dos">
-      <div class="campo">
-        <label for="campoActivo">Nombre del activo</label>
-        <input type="text" id="campoActivo" maxlength="80" placeholder="Por ejemplo: acción de Ecopetrol" autocomplete="off">
-        <span class="ayuda">Aparecerá en los informes.</span>
-        <span class="error-campo" id="errorActivo"></span>
+    <div class="campo">
+      <span class="etiqueta" id="etiquetaPreset">Punto de partida</span>
+      <div class="opciones" role="radiogroup" aria-labelledby="etiquetaPreset">
+        <label class="opcion"><input type="radio" name="preset" value="personalizada" checked><span>Personalizada</span></label>
+        <label class="opcion"><input type="radio" name="preset" value="riskmetrics"><span>RiskMetrics</span></label>
+        <label class="opcion"><input type="radio" name="preset" value="basilea"><span>Basilea</span></label>
       </div>
+      <p class="nota" id="notaPreset" aria-live="polite"></p>
+    </div>
+
+    <h3>Configuración básica</h3>
+    <div class="rejilla tres">
       <div class="campo">
         <label for="campoValor">Valor de la posición</label>
         <input type="text" id="campoValor" inputmode="decimal" placeholder="1.000.000" autocomplete="off">
-        <span class="ayuda">Monto invertido hoy. Admite puntos de miles y coma decimal.</span>
+        <span class="ayuda">Exposición actual. Admite puntos de miles y coma decimal.</span>
         <span class="error-campo" id="errorValor"></span>
       </div>
       <div class="campo">
@@ -458,68 +578,66 @@ td.envuelve { white-space: normal; min-width: 240px; }
         <span class="error-campo" id="errorNiveles"></span>
       </div>
       <div class="campo">
-        <label for="campoLimite">Límite de VaR aceptable (opcional)</label>
+        <label for="campoLimite">Límite de riesgo (opcional)</label>
         <input type="text" id="campoLimite" inputmode="decimal" placeholder="Sin límite" autocomplete="off">
-        <span class="ayuda">Pérdida máxima tolerada por la política de riesgo, en la misma moneda.</span>
+        <span class="ayuda">VaR máximo tolerado por la política de riesgo, en la misma moneda.</span>
         <span class="error-campo" id="errorLimite"></span>
       </div>
     </div>
 
-    <h3>Fuente de los parámetros</h3>
-    <div class="opciones" role="radiogroup" aria-label="Fuente de los parámetros">
-      <label class="opcion"><input type="radio" name="fuente" value="serie" checked><span>Serie histórica de precios</span></label>
-      <label class="opcion"><input type="radio" name="fuente" value="parametros"><span>Media y volatilidad conocidas</span></label>
-    </div>
-    <p class="nota">Con la serie histórica la aplicación estima los parámetros, revisa la normalidad y hace backtesting. Con parámetros conocidos, útil en ejercicios de clase, solo calcula el VaR y el análisis de límites.</p>
-
-    <div id="opcionesSerie">
-      <div class="rejilla tres" style="margin-top:1rem">
-        <div class="campo">
-          <span class="etiqueta" id="etiquetaRendimiento">Tipo de rendimiento</span>
-          <div class="opciones" role="radiogroup" aria-labelledby="etiquetaRendimiento">
-            <label class="opcion"><input type="radio" name="rendimiento" value="log" checked><span>Logarítmico</span></label>
-            <label class="opcion"><input type="radio" name="rendimiento" value="simple"><span>Simple</span></label>
+    <details id="configAvanzada">
+      <summary>Configuración avanzada <span class="resumen-avanzada" id="resumenAvanzada"></span></summary>
+      <div>
+        <div class="rejilla tres">
+          <div class="campo">
+            <span class="etiqueta" id="etiquetaRendimiento">Tipo de rendimiento</span>
+            <div class="opciones" role="radiogroup" aria-labelledby="etiquetaRendimiento">
+              <label class="opcion"><input type="radio" name="rendimiento" value="log" checked><span>Logarítmico</span></label>
+              <label class="opcion"><input type="radio" name="rendimiento" value="simple"><span>Simple</span></label>
+            </div>
+          </div>
+          <div class="campo">
+            <span class="etiqueta" id="etiquetaVolatilidad">Estimador de volatilidad</span>
+            <div class="opciones" role="radiogroup" aria-labelledby="etiquetaVolatilidad">
+              <label class="opcion"><input type="radio" name="volatilidad" value="muestral" checked><span>Muestral</span></label>
+              <label class="opcion"><input type="radio" name="volatilidad" value="ewma"><span>EWMA</span></label>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="campoLambda">Factor λ de EWMA</label>
+            <input type="text" id="campoLambda" inputmode="decimal" value="0,94" disabled>
+            <span class="ayuda">RiskMetrics publicó 0,94 para datos diarios.</span>
+            <span class="error-campo" id="errorLambda"></span>
+          </div>
+          <div class="campo">
+            <span class="etiqueta" id="etiquetaMedia">Rendimiento esperado</span>
+            <div class="opciones" role="radiogroup" aria-labelledby="etiquetaMedia">
+              <label class="opcion"><input type="radio" name="media" value="con" checked><span>Incluir rendimiento esperado (μ)</span></label>
+              <label class="opcion"><input type="radio" name="media" value="sin"><span>Asumir μ = 0</span></label>
+            </div>
+            <span class="ayuda">Con μ incluida se obtiene el VaR absoluto; con μ = 0, el VaR relativo a la media.</span>
+          </div>
+          <div class="campo">
+            <label for="campoVentana">Ventana del backtesting (días)</label>
+            <input type="number" id="campoVentana" min="20" max="1000" step="1" value="250">
+            <span class="ayuda">Días previos usados para estimar cada VaR diario.</span>
+            <span class="error-campo" id="errorVentana"></span>
           </div>
         </div>
-        <div class="campo">
-          <span class="etiqueta" id="etiquetaVolatilidad">Estimador de volatilidad</span>
-          <div class="opciones" role="radiogroup" aria-labelledby="etiquetaVolatilidad">
-            <label class="opcion"><input type="radio" name="volatilidad" value="muestral" checked><span>Muestral</span></label>
-            <label class="opcion"><input type="radio" name="volatilidad" value="ewma"><span>EWMA</span></label>
+        <details>
+          <summary>¿En qué se diferencian las variantes?</summary>
+          <div>
+            <p><strong>Muestral:</strong> todos los rendimientos pesan igual. Es estable, pero reacciona lento cuando cambia la volatilidad.</p>
+            <p><strong>EWMA:</strong> los rendimientos recientes pesan más, con pesos que decaen en proporción λ. Reacciona rápido a los choques. Con λ = 0,94 el rendimiento de hace 11 días pesa la mitad que el de ayer.</p>
+            <p><strong>Logarítmico o simple:</strong> el logarítmico es aditivo en el tiempo, lo que justifica mejor la regla de la raíz del tiempo. Para rendimientos diarios pequeños ambos casi coinciden.</p>
+            <p><strong>Rendimiento esperado:</strong> en horizontes cortos la media diaria es casi cero y muy imprecisa. RiskMetrics y buena parte de la práctica bancaria asumen μ = 0; incluirla reduce el VaR si la media es positiva.</p>
           </div>
-        </div>
-        <div class="campo">
-          <label for="campoLambda">Factor λ de EWMA</label>
-          <input type="text" id="campoLambda" inputmode="decimal" value="0,94" disabled>
-          <span class="ayuda">RiskMetrics publicó 0,94 para datos diarios.</span>
-          <span class="error-campo" id="errorLambda"></span>
-        </div>
-        <div class="campo">
-          <label for="campoVentana">Ventana del backtesting (días)</label>
-          <input type="number" id="campoVentana" min="20" max="1000" step="1" value="250">
-          <span class="ayuda">Días previos usados para estimar cada VaR diario.</span>
-          <span class="error-campo" id="errorVentana"></span>
-        </div>
+        </details>
       </div>
-      <details>
-        <summary>¿En qué se diferencian las variantes?</summary>
-        <div>
-          <p><strong>Muestral:</strong> todos los rendimientos pesan igual. Es estable, pero reacciona lento cuando cambia la volatilidad.</p>
-          <p><strong>EWMA:</strong> los rendimientos recientes pesan más, con pesos que decaen en proporción λ. Reacciona rápido a los choques. Con λ = 0,94 el rendimiento de hace 11 días pesa la mitad que el de ayer.</p>
-          <p><strong>Logarítmico o simple:</strong> el logarítmico es aditivo en el tiempo, lo que justifica mejor la regla de la raíz del tiempo. Para rendimientos diarios pequeños ambos casi coinciden.</p>
-        </div>
-      </details>
-    </div>
-
-    <h3>Tratamiento de la media</h3>
-    <div class="opciones" role="radiogroup" aria-label="Tratamiento de la media">
-      <label class="opcion"><input type="radio" name="media" value="con" checked><span>Incluir la media (VaR absoluto)</span></label>
-      <label class="opcion"><input type="radio" name="media" value="sin"><span>Media cero (VaR relativo)</span></label>
-    </div>
-    <p class="nota">En horizontes cortos la media diaria es casi cero y muy imprecisa. RiskMetrics y buena parte de la práctica bancaria la omiten; incluirla reduce el VaR si la media es positiva.</p>
+    </details>
 
     <div class="acciones">
-      <button class="boton primario" id="botonConfirmar" type="button">Confirmar configuración</button>
+      <button class="boton primario" id="botonConfirmar" type="button">Confirmar modelo</button>
       <span class="origen" id="estadoConfirmacion" aria-live="polite">Sin confirmar</span>
     </div>
   </div>
@@ -527,107 +645,149 @@ td.envuelve { white-space: normal; min-width: 240px; }
 
 <!-- ============================ 02 DATOS ============================ -->
 <section class="seccion" id="seccionDatos" aria-labelledby="tituloDatos">
-  <div class="encabezado-seccion"><span class="num">02</span><h2 id="tituloDatos">Ingreso de datos</h2></div>
-  <p class="intro" id="introDatos">Pegue la serie de precios o cargue un archivo CSV. La revisión de calidad se actualiza mientras escribe.</p>
+  <div class="encabezado-seccion"><span class="num">02</span><h2 id="tituloDatos">Datos</h2></div>
+  <p class="intro" id="introDatos">¿Con qué información? Cargue una matriz de precios: la primera columna es la fecha o el orden y cada columna siguiente es un activo.</p>
 
-  <div class="panel" id="panelSinConfirmar">
-    <p>Primero confirme la configuración del paso 01.</p>
-  </div>
+  <div class="panel">
+    <div class="opciones" role="radiogroup" aria-label="Fuente de los parámetros">
+      <label class="opcion"><input type="radio" name="fuente" value="serie" checked><span>Serie de precios</span></label>
+      <label class="opcion"><input type="radio" name="fuente" value="parametros"><span>Parámetros conocidos (μ, σ)</span></label>
+    </div>
 
-  <div class="panel" id="panelSerie" hidden>
-    <div class="rejilla dos">
-      <div class="campo">
-        <label for="campoSerie">Serie de precios</label>
-        <textarea id="campoSerie" spellcheck="false" aria-describedby="ayudaSerie" placeholder="2025-01-02;4.120,5&#10;2025-01-03;4.098&#10;..."></textarea>
-        <span class="ayuda" id="ayudaSerie">Una fila por día. Solo el precio, o fecha y precio separados por punto y coma, tabulación o coma. Se admite una fila de encabezado.</span>
+    <div id="panelSerie">
+      <div class="acciones">
+        <button class="boton" id="botonPlantillaExcel" type="button">Descargar plantilla Excel</button>
+        <button class="boton" id="botonPlantillaCSV" type="button">Descargar plantilla CSV</button>
+        <span class="separador-acciones" aria-hidden="true"></span>
+        <button class="boton" id="botonCargarEjemplo" type="button">Cargar ejemplo</button>
       </div>
-      <div>
+
+      <div class="zona-carga" id="zonaCarga">
+        <p><strong>Arrastre aquí su archivo</strong> o <label for="campoArchivo" class="enlace-archivo">selecciónelo en su equipo</label>.</p>
+        <p class="nota">CSV, texto o Excel con el estándar matricial de Kíndynos.</p>
+        <input type="file" id="campoArchivo" accept=".csv,.txt,.xlsx,.xls,text/csv,text/plain">
+      </div>
+      <p class="nota privacidad"><strong>Procesamiento local.</strong> Los datos se procesan únicamente en este navegador y no se envían a ningún servidor.</p>
+
+      <details id="detallesPegar">
+        <summary>O pegue los datos</summary>
+        <div>
+          <div class="campo">
+            <label for="campoSerie">Matriz de precios</label>
+            <textarea id="campoSerie" spellcheck="false" aria-describedby="ayudaSerie" placeholder="Fecha;ECOPETROL;ISA&#10;2026-01-02;1.865;18.240&#10;2026-01-05;1.890;18.310&#10;..."></textarea>
+            <span class="ayuda" id="ayudaSerie">Separe las columnas con punto y coma o tabulación (al copiar desde Excel). Una fila por observación; deje vacía la celda de un valor faltante.</span>
+          </div>
+        </div>
+      </details>
+
+      <div class="campo" id="bloqueOrden" hidden style="max-width:420px;margin-top:1rem">
+        <label for="campoOrden">Orden de las filas</label>
+        <select id="campoOrden">
+          <option value="ascendente">La primera fila es la más antigua</option>
+          <option value="descendente">La primera fila es la más reciente</option>
+        </select>
+        <span class="ayuda">Solo se pregunta cuando no hay columna de fecha ni de orden.</span>
+      </div>
+
+      <div id="calidadSerie" aria-live="polite"></div>
+      <div id="vistaPrevia"></div>
+
+      <div class="campo" id="bloqueSelector" hidden style="max-width:420px;margin-top:1rem">
+        <label for="campoActivoSel">Activo a analizar</label>
+        <select id="campoActivoSel"></select>
+        <span class="ayuda">Puede cambiar de activo sin volver a cargar la matriz.</span>
+      </div>
+      <div class="grafico" id="graficoPrecios" hidden></div>
+    </div>
+
+    <div id="panelParametros" hidden>
+      <div class="rejilla dos" style="margin-top:1rem">
         <div class="campo">
-          <label for="campoArchivo">Cargar archivo CSV o de texto</label>
-          <input type="file" id="campoArchivo" accept=".csv,.txt,text/csv,text/plain">
+          <label for="campoMu">Media diaria del rendimiento μ (%)</label>
+          <input type="text" id="campoMu" inputmode="decimal" placeholder="0,05">
+          <span class="ayuda">Puede ser negativa. Se ignora si eligió asumir μ = 0.</span>
+          <span class="error-campo" id="errorMu"></span>
         </div>
-        <div class="campo" style="margin-top:1rem">
-          <label for="campoOrden">Orden de las filas sin fecha</label>
-          <select id="campoOrden">
-            <option value="ascendente">La primera fila es la más antigua</option>
-            <option value="descendente">La primera fila es la más reciente</option>
-          </select>
-          <span class="ayuda">Si hay fechas, el orden se detecta solo.</span>
+        <div class="campo">
+          <label for="campoSigma">Volatilidad diaria σ (%)</label>
+          <input type="text" id="campoSigma" inputmode="decimal" placeholder="1,8">
+          <span class="ayuda">Desviación estándar diaria de los rendimientos. Si tiene la anual, divídala por √252.</span>
+          <span class="error-campo" id="errorSigma"></span>
         </div>
-        <div id="calidadSerie" aria-live="polite" style="margin-top:1rem"></div>
       </div>
     </div>
-    <div class="grafico" id="graficoPrecios" hidden></div>
+
+    <div class="campo" style="max-width:420px;margin-top:1.2rem">
+      <label for="campoActivo">Nombre del activo en los informes</label>
+      <input type="text" id="campoActivo" maxlength="80" placeholder="Por ejemplo: acción de Ecopetrol" autocomplete="off">
+      <span class="ayuda">Con una matriz se toma del encabezado de la columna; puede editarlo.</span>
+      <span class="error-campo" id="errorActivo"></span>
+    </div>
+
     <div class="acciones">
       <button class="boton primario" id="botonCalcularSerie" type="button">Calcular el VaR</button>
-      <button class="boton" id="botonLimpiarSerie" type="button">Limpiar la serie</button>
+      <button class="boton" id="botonLimpiarSerie" type="button">Limpiar los datos</button>
       <span class="origen" id="origenSerie">Sin datos</span>
-    </div>
-  </div>
-
-  <div class="panel" id="panelParametros" hidden>
-    <div class="rejilla dos">
-      <div class="campo">
-        <label for="campoMu">Media diaria del rendimiento μ (%)</label>
-        <input type="text" id="campoMu" inputmode="decimal" placeholder="0,05">
-        <span class="ayuda">Puede ser negativa. Se ignora si eligió media cero.</span>
-        <span class="error-campo" id="errorMu"></span>
-      </div>
-      <div class="campo">
-        <label for="campoSigma">Volatilidad diaria σ (%)</label>
-        <input type="text" id="campoSigma" inputmode="decimal" placeholder="1,8">
-        <span class="ayuda">Desviación estándar diaria de los rendimientos. Si tiene la anual, divídala por √252.</span>
-        <span class="error-campo" id="errorSigma"></span>
-      </div>
-    </div>
-    <div class="acciones">
-      <button class="boton primario" id="botonCalcularParametros" type="button">Calcular el VaR</button>
     </div>
   </div>
 </section>
 
-<!-- ============================ 03 RESULTADOS ============================ -->
+<!-- ============================ 03 RIESGO ============================ -->
 <section class="seccion" id="seccionResultados" aria-labelledby="tituloResultados">
-  <div class="encabezado-seccion"><span class="num">03</span><h2 id="tituloResultados">Resultados</h2></div>
+  <div class="encabezado-seccion"><span class="num">03</span><h2 id="tituloResultados">Riesgo</h2></div>
+  <p class="intro">¿Cuánto riesgo existe y qué tan confiable es su estimación?</p>
   <div id="resultadosVacio" class="panel"><p>Aún no hay resultados. Complete los pasos 01 y 02.</p></div>
   <div id="resultadosContenido" hidden>
     <div id="avisoResultados"></div>
     <div class="panel">
-      <div class="cifra-principal" id="cifrasPrincipales"></div>
-      <p class="frase-resultado" id="fraseResultado"></p>
+      <h3 style="margin-top:0">Resumen de riesgo</h3>
+      <div class="resumen-riesgo" id="cifrasPrincipales"></div>
+      <div class="lectura-resultado" id="fraseResultado"></div>
       <p class="nota" id="notaOrigen"></p>
     </div>
     <div class="panel">
-      <div class="tabla-contenedor" id="tablaParametros"></div>
-      <p class="nota">La media y la volatilidad son diarias. El horizonte las escala: μ·h y σ·√h.</p>
-      <div class="tabla-contenedor" id="tablaVaR"></div>
-      <p class="nota"><strong>z</strong> es el número de desviaciones estándar que separa la media del umbral de pérdida. <strong>VaR</strong> es la pérdida que solo se supera con probabilidad 1 − c. <strong>ES</strong> es la pérdida promedio en ese peor 1 − c de los casos; siempre es mayor que el VaR y el marco de riesgo de mercado de Basilea (FRTB) la adoptó porque capta mejor las colas.</p>
-    </div>
-    <div class="panel">
-      <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between">
-        <h3 style="margin:0">Gráfico 1. Distribución y umbral de pérdida</h3>
+      <div class="fila-titulo">
+        <h3 style="margin:0">Gráfico 1. Distribución, umbral y cola de pérdida</h3>
         <div class="pestanas" role="tablist" aria-label="Nivel de confianza del gráfico" id="pestanasNivel"></div>
       </div>
       <div class="grafico" id="graficoDensidad"></div>
       <p class="nota" id="notaDensidad"></p>
+      <div class="tabla-contenedor" id="tablaVaR"></div>
+      <p class="nota"><strong>z</strong> es el número de desviaciones estándar que separa la media del umbral de pérdida. <strong>VaR</strong> es el umbral que solo se excede con probabilidad 1 − c. <strong>ES</strong> es la pérdida promedio en ese peor 1 − c de los casos; siempre es mayor que el VaR y el marco de riesgo de mercado de Basilea (FRTB) la adoptó porque capta mejor las colas.</p>
+      <details>
+        <summary>Tabla 1. Parámetros estimados</summary>
+        <div>
+          <div class="tabla-contenedor" id="tablaParametros"></div>
+          <p class="nota">La media y la volatilidad son diarias. El horizonte las escala: μ·h y σ·√h.</p>
+        </div>
+      </details>
     </div>
-    <div class="panel" id="panelNormalidad">
-      <h3 style="margin-top:0">Calidad del supuesto de normalidad</h3>
-      <div class="tabla-contenedor" id="tablaNormalidad"></div>
-      <div id="avisoNormalidad"></div>
+    <div class="panel" id="panelDiagnostico">
+      <h3 style="margin-top:0">Diagnóstico del modelo</h3>
+      <p class="nota">Pruebas estadísticas sobre los supuestos, con sus valores y cómo leerlos. Kíndynos no resume el diagnóstico en un puntaje.</p>
+      <div id="panelNormalidad">
+        <h4 class="subtitulo">Normalidad de los rendimientos</h4>
+        <div class="tabla-contenedor" id="tablaNormalidad"></div>
+        <div id="avisoNormalidad"></div>
+      </div>
+      <div id="bloqueExcepcionesMuestra">
+        <h4 class="subtitulo">Excepciones dentro de la muestra</h4>
+        <div class="tabla-contenedor" id="tablaExcepcionesMuestra"></div>
+      </div>
+      <div id="bloqueAdvertencias"></div>
     </div>
   </div>
 </section>
 
 <!-- ============================ 04 ROBUSTEZ ============================ -->
 <section class="seccion" id="seccionRobustez" aria-labelledby="tituloRobustez">
-  <div class="encabezado-seccion"><span class="num">04</span><h2 id="tituloRobustez">Robustez del resultado</h2></div>
-  <p class="intro">Dos preguntas: ¿el modelo habría acertado en el pasado? y ¿qué tendría que cambiar para que el VaR cruzara el límite de riesgo?</p>
+  <div class="encabezado-seccion"><span class="num">04</span><h2 id="tituloRobustez">Robustez</h2></div>
+  <p class="intro">¿El modelo se comportó razonablemente y qué tan cerca está el riesgo del límite?</p>
   <div id="robustezVacio" class="panel"><p>Calcule los resultados para ver este análisis.</p></div>
   <div id="robustezContenido" hidden>
     <div class="panel" id="panelBacktesting">
-      <h3 style="margin-top:0">Backtesting con la prueba de Kupiec</h3>
-      <p class="nota">Para cada día se estima el VaR de un día con la ventana previa y se compara con el rendimiento que realmente ocurrió. Si el modelo está bien calibrado, las excepciones deben ser cercanas a (1 − c) por el número de días evaluados.</p>
+      <h3 class="pregunta" style="margin-top:0">¿Funcionó el modelo en el pasado?</h3>
+      <p class="nota">Para cada día se estima el VaR de un día con la ventana previa y se compara con el rendimiento que realmente ocurrió. Si el modelo está bien calibrado, las excepciones deben acercarse a (1 − c) por el número de días evaluados.</p>
       <div class="campo" style="max-width:320px;margin-top:0.8rem">
         <label for="selectorNivelBT">Nivel de confianza evaluado</label>
         <select id="selectorNivelBT"></select>
@@ -636,13 +796,14 @@ td.envuelve { white-space: normal; min-width: 240px; }
       <div class="grafico" id="graficoBacktesting"></div>
     </div>
     <div class="panel">
-      <h3 style="margin-top:0">¿Qué tendría que cambiar?</h3>
+      <h3 class="pregunta" style="margin-top:0">¿Qué tendría que cambiar para alcanzar el límite?</h3>
+      <p class="nota">Frontera de riesgo (Risk Boundary): el valor de cada variable que lleva el VaR exactamente al límite, cambiando una a la vez.</p>
       <div class="campo" style="max-width:320px">
         <label for="selectorNivelLim">Nivel de confianza de referencia</label>
         <select id="selectorNivelLim"></select>
       </div>
       <div id="resultadoLimites"></div>
-      <h3>Gráfico 3. VaR según el nivel de confianza y el horizonte</h3>
+      <h4 class="subtitulo">Gráfico 3. VaR según el nivel de confianza y el horizonte</h4>
       <div class="pestanas" role="tablist" aria-label="Eje del gráfico de sensibilidad" id="pestanasSensibilidad">
         <button role="tab" aria-selected="true" data-eje="confianza" type="button">Nivel de confianza</button>
         <button role="tab" aria-selected="false" data-eje="horizonte" type="button">Horizonte</button>
@@ -652,19 +813,22 @@ td.envuelve { white-space: normal; min-width: 240px; }
   </div>
 </section>
 
-<!-- ============================ 05 EXPORTACIÓN ============================ -->
+<!-- ============================ 05 INFORME ============================ -->
 <section class="seccion" id="seccionExportacion" aria-labelledby="tituloExportacion">
-  <div class="encabezado-seccion"><span class="num">05</span><h2 id="tituloExportacion">Exportación</h2></div>
+  <div class="encabezado-seccion"><span class="num">05</span><h2 id="tituloExportacion">Informe</h2></div>
+  <p class="intro">¿Cómo documento y comunico el análisis?</p>
   <div class="panel">
     <div class="rejilla dos">
       <div class="bloque">
-        <h3 style="margin-top:0">Libro de Excel</h3>
-        <p class="nota">Menú con índice, hoja de datos con rendimientos, parámetros, VaR y ES, backtesting y robustez. Todas las cifras llevan su fórmula de Excel para seguir el cálculo celda por celda.</p>
+        <p class="rotulo-salida">Modelo auditable · Excel</p>
+        <h3 style="margin-top:0.2rem">Libro con fórmulas</h3>
+        <p class="nota">Permite reproducir cada cálculo y revisar las fórmulas que usa Kíndynos: matriz cargada, datos del activo, parámetros, VaR y ES, backtesting, frontera de riesgo y resultado.</p>
         <div class="acciones"><button class="boton primario" id="botonExcel" type="button" disabled>Descargar Excel</button></div>
       </div>
       <div class="bloque">
-        <h3 style="margin-top:0">Informe ejecutivo en PDF</h3>
-        <p class="nota">Conclusión, resultados con barras, estructura del modelo, calidad del supuesto, robustez, nota metodológica y referencias. Se genera sin conexión.</p>
+        <p class="rotulo-salida">Informe ejecutivo · PDF</p>
+        <h3 style="margin-top:0.2rem">Resumen para decidir</h3>
+        <p class="nota">Resume resultados, diagnóstico, robustez, frontera de riesgo, metodología y referencias. Se genera sin conexión.</p>
         <div class="acciones"><button class="boton primario" id="botonPDF" type="button" disabled>Descargar PDF</button></div>
       </div>
     </div>
@@ -672,26 +836,53 @@ td.envuelve { white-space: normal; min-width: 240px; }
   </div>
 </section>
 
-<!-- ============================ 06 PRUEBAS ============================ -->
-<section class="seccion" id="seccionPruebas" aria-labelledby="tituloPruebas">
-  <div class="encabezado-seccion"><span class="num">06</span><h2 id="tituloPruebas">Modo de prueba y verificación</h2></div>
+<!-- ============================ ACERCA DE KÍNDYNOS ============================ -->
+<section class="seccion acerca" id="seccionAcerca" aria-labelledby="tituloAcerca">
+  <div class="encabezado-seccion"><span class="num" aria-hidden="true">i</span><h2 id="tituloAcerca">Acerca de Kíndynos</h2></div>
   <div class="panel">
-    <h3 style="margin-top:0">Escenarios con datos ficticios</h3>
-    <p class="nota">Series de precios simuladas en el navegador con semilla fija. Quedan marcadas como datos de prueba en la pantalla y en los archivos exportados, que llevan el prefijo PRUEBA_.</p>
-    <div class="acciones" id="botonesEscenarios"></div>
-    <h3>Pruebas automáticas</h3>
-    <p class="nota">Comparan los cálculos con valores analíticos publicados, casos límite y la estructura de los archivos.</p>
-    <div class="acciones"><button class="boton" id="botonPruebas" type="button">Ejecutar las pruebas</button><span class="origen" id="resumenPruebas" aria-live="polite">Sin ejecutar</span></div>
-    <div class="tabla-contenedor" id="tablaPruebas"></div>
+    <div class="rejilla dos">
+      <div>
+        <h3 style="margin-top:0">El nombre</h3>
+        <p><strong>κίνδυνος</strong> (kíndynos) significa riesgo o peligro en griego. Kíndynos forma parte de una familia de aplicativos académicos con nombres griegos.</p>
+        <h3>Versión y autoría</h3>
+        <p id="notaAutoria"></p>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Validación</h3>
+        <p class="nota">El motor cuantitativo se verifica con pruebas automáticas contra valores analíticos publicados, casos límite, el estándar de datos y la estructura de los archivos. Las pruebas cargan escenarios internos y al terminar restauran lo que usted tenía en pantalla.</p>
+        <div class="acciones"><button class="boton" id="botonPruebas" type="button">Ejecutar verificación</button><span class="origen" id="resumenPruebas" aria-live="polite">Sin ejecutar</span></div>
+        <details>
+          <summary>Ver pruebas técnicas</summary>
+          <div><div class="tabla-contenedor" id="tablaPruebas"><p class="nota" style="padding:1rem">Pulse «Ejecutar verificación» para ver el detalle.</p></div></div>
+        </details>
+        <details>
+          <summary>Escenarios de prueba</summary>
+          <div>
+            <p class="nota">Series simuladas con semilla fija. Quedan marcadas como datos de prueba en la pantalla y en los archivos exportados, que llevan el prefijo PRUEBA_.</p>
+            <div class="acciones" id="botonesEscenarios"></div>
+          </div>
+        </details>
+      </div>
+    </div>
+    <details>
+      <summary>Referencias</summary>
+      <div id="listaReferencias"></div>
+    </details>
+    <details>
+      <summary>Cómo citar, código fuente y licencia</summary>
+      <div>
+        <p id="textoCita"></p>
+        <p>Código fuente: <a id="enlaceRepositorio" href="#" rel="noopener"></a></p>
+        <p>Licencia de uso académico: <a id="enlaceLicencia" href="#" rel="noopener">LICENSE.md</a></p>
+      </div>
+    </details>
   </div>
-  <p class="autoria" id="notaAutoria"></p>
 </section>
 
 </main>
 
 <div class="mensajes" id="mensajes" aria-live="assertive"></div>
 <div class="tooltip" id="tooltip" role="tooltip"></div>
-
 <script>
 "use strict";
 /* =========================================================================
@@ -700,7 +891,9 @@ td.envuelve { white-space: normal; min-width: 240px; }
 
 const APLICATIVO = Object.freeze({
   nombre: "Kíndynos VaR",
-  version: "1.0",
+  version: "2.0",
+  sitio: "https://mgomezr1.github.io/kindynos-VaR/",
+  repositorio: "https://github.com/mgomezr1/kindynos-VaR",
   autor: "Mario Sergio Gómez Rueda",
   correo: "mgomezr1@gmail.com",
   nota: "Este aplicativo fue desarrollado por Mario Sergio Gómez Rueda. Su uso es de carácter académico y cualquier otro uso se regirá por el derecho de la propiedad intelectual. Sugerencias o dudas: mgomezr1@gmail.com"
@@ -723,6 +916,9 @@ const estado = {
   configuracionConfirmada: false,
   serie: null,                  // resultado de leer la serie { precios, fechas, ... }
   origen: { tipo: "ninguno", detalle: "" },
+  matriz: null,                 // matriz leída con el estándar de datos
+  activoSeleccionado: 0,        // columna de la matriz que se analiza
+  nombreManual: false,          // el usuario escribió el nombre del activo
   resultados: null,
   resultadosDesactualizados: false,
   nivelGrafico: 0,
@@ -760,6 +956,13 @@ function formatearDinero(valor, moneda = "") {
 }
 /** Decimales necesarios para mostrar un porcentaje: 0 si es entero, 2 si no. */
 function decimalesPct(v) { return Math.abs(v * 100 - Math.round(v * 100)) < 1e-9 ? 0 : 2; }
+/** Monto compacto para el resumen de riesgo: millones como «13,13 M» y miles de millones como «1,25 mil M». */
+function formatearCompacto(v) {
+  const a = Math.abs(v);
+  if (a >= 1e9) return `${(v / 1e9).toLocaleString("es-CO", { maximumFractionDigits: 2 })} mil M`;
+  if (a >= 1e6) return `${(v / 1e6).toLocaleString("es-CO", { maximumFractionDigits: 2 })} M`;
+  return formatearNumero(v, a >= 1000 ? 0 : 2);
+}
 function formatearNivel(c) { return `${formatearNumero(c * 100, decimalesPct(c))} %`; }
 function plural(n, singular, pluralTexto) { return `${n.toLocaleString("es-CO")} ${n === 1 ? singular : pluralTexto}`; }
 
@@ -898,80 +1101,207 @@ function desviacionMuestral(v) {
 }
 
 /* =========================================================================
-   4. LECTURA DE LA SERIE DE PRECIOS
+   4. LECTURA DE DATOS: ESTÁNDAR MATRICIAL KÍNDYNOS
+   Primera columna: índice (Fecha u Orden). Columnas siguientes: un activo
+   por columna, con el encabezado que el usuario quiera. Un único estándar
+   de 1 a n activos. También se aceptan los archivos de la versión 1:
+   solo precios en una columna, o fecha y precio.
    ========================================================================= */
 
-/**
- * Interpreta el texto pegado o cargado.
- * Devuelve { valida, errores[], avisos[], precios[], fechas[] | null, convencion, filasLeidas }.
- */
-function leerSerie(texto, orden = "ascendente") {
-  const errores = [], avisos = [];
-  const lineas = String(texto ?? "").split(/\r?\n/).map((l) => l.trim()).filter((l) => l !== "");
-  if (!lineas.length) return { valida: false, errores: ["No hay filas con datos."], avisos, precios: [], fechas: null, filasLeidas: 0 };
+const VALORES_VACIOS = new Set(["", "na", "n/a", "nan", "null", "#n/a"]);
+const MAX_MENSAJES_DETALLE = 6;
 
-  // Separador: tabulación o punto y coma; la coma solo si la primera columna es una fecha
-  const separador = lineas.some((l) => l.includes("\t")) ? "\t" : lineas.some((l) => l.includes(";")) ? ";" : null;
-  const partir = (linea) => {
-    if (separador) return linea.split(separador).map((x) => x.trim()).filter((x) => x !== "");
-    const i = linea.indexOf(",");
-    if (i > 0 && leerFecha(linea.slice(0, i))) return [linea.slice(0, i).trim(), linea.slice(i + 1).trim()];
-    return [linea];
-  };
-  let filas = lineas.map((l, i) => ({ linea: i + 1, campos: partir(l) }));
-
-  // Convención decimal de toda la serie
-  const textosPrecio = filas.map((f) => f.campos[f.campos.length - 1]);
-  let convencion = "punto";
-  if (textosPrecio.some((t) => /,\d+$/.test(t) && !/\.\d+$/.test(t) && !/^\d{1,3}(,\d{3})+$/.test(t))) convencion = "coma";
-  else if (textosPrecio.some((t) => /^\d{1,3}(\.\d{3})+,\d+$/.test(t))) convencion = "coma";
-
-  // Encabezado
-  const primerPrecio = leerNumero(textosPrecio[0], convencion);
-  if (!Number.isFinite(primerPrecio)) { filas = filas.slice(1); avisos.push("La primera fila se tomó como encabezado."); }
-
-  const precios = [], fechasTexto = [], invalidas = [];
-  filas.forEach((f) => {
-    const precio = leerNumero(f.campos[f.campos.length - 1], convencion);
-    if (!Number.isFinite(precio)) { invalidas.push(`fila ${f.linea}: «${f.campos.join(" ")}» no es un precio`); return; }
-    if (precio <= 0) { invalidas.push(`fila ${f.linea}: el precio debe ser mayor que cero`); return; }
-    if (f.campos.length > 2) { invalidas.push(`fila ${f.linea}: tiene ${f.campos.length} columnas; se esperan una o dos`); return; }
-    precios.push(precio);
-    fechasTexto.push(f.campos.length === 2 ? f.campos[0] : null);
-  });
-  if (invalidas.length) {
-    errores.push(`Hay ${plural(invalidas.length, "fila inválida", "filas inválidas")}. Corrija: ${invalidas.slice(0, 4).join("; ")}${invalidas.length > 4 ? "; …" : ""}.`);
-  }
-
-  // Fechas
-  let fechas = null;
-  const conFecha = fechasTexto.filter((f) => f !== null).length;
-  if (conFecha > 0 && conFecha < fechasTexto.length) errores.push("Algunas filas tienen fecha y otras no. Use el mismo formato en todas.");
-  if (conFecha === fechasTexto.length && conFecha > 0) {
-    fechas = fechasTexto.map(leerFecha);
-    const malas = fechas.map((f, i) => (f ? null : i)).filter((i) => i !== null);
-    if (malas.length) { errores.push(`No se reconoce la fecha en ${plural(malas.length, "fila", "filas")}. Use aaaa-mm-dd o dd/mm/aaaa.`); fechas = null; }
-  }
-  let preciosOrdenados = precios.slice();
-  if (fechas && !errores.length) {
-    const indices = fechas.map((_, i) => i).sort((i, j) => fechas[i] - fechas[j]);
-    const repetidas = indices.some((idx, k) => k > 0 && +fechas[idx] === +fechas[indices[k - 1]]);
-    if (repetidas) errores.push("Hay fechas repetidas. Cada día debe aparecer una sola vez.");
-    const ascendente = indices.every((idx, k) => idx === k);
-    const descendente = indices.every((idx, k) => idx === indices.length - 1 - k);
-    if (!ascendente) avisos.push(descendente ? "Las fechas venían de la más reciente a la más antigua; se invirtió el orden." : "Las fechas no estaban en orden; se ordenaron de la más antigua a la más reciente.");
-    preciosOrdenados = indices.map((i) => precios[i]);
-    fechas = indices.map((i) => fechas[i]);
-  } else if (!fechas && orden === "descendente") {
-    preciosOrdenados.reverse();
-  }
-
-  if (!errores.length && preciosOrdenados.length < 11) errores.push(`Se necesitan al menos 11 precios (10 rendimientos); hay ${preciosOrdenados.length}.`);
-  else if (!errores.length && preciosOrdenados.length < 31) avisos.push("Con menos de 30 rendimientos la volatilidad estimada es muy imprecisa.");
-
-  return { valida: errores.length === 0, errores, avisos, precios: preciosOrdenados, fechas, convencion, filasLeidas: precios.length };
+/** Texto de fecha en formato dd/mm/aaaa para los mensajes. */
+function fechaCorta(fecha) {
+  const d = (v) => String(v).padStart(2, "0");
+  return `${d(fecha.getUTCDate())}/${d(fecha.getUTCMonth() + 1)}/${fecha.getUTCFullYear()}`;
 }
 
+/** Detecta el separador de columnas y parte cada línea. Devuelve { separador, filas[] }. */
+function partirLineas(lineas) {
+  const cortar = (sep) => lineas.map((l) => ({ ...l, campos: l.texto.split(sep).map((x) => x.trim()) }));
+  if (lineas.some((l) => l.texto.includes("\t"))) return { separador: "tabulación", filas: cortar("\t") };
+  if (lineas.some((l) => l.texto.includes(";"))) return { separador: "punto y coma", filas: cortar(";") };
+  if (!lineas.some((l) => l.texto.includes(","))) return { separador: "ninguno", filas: lineas.map((l) => ({ ...l, campos: [l.texto.trim()] })) };
+  // Coma como separador de columnas: exige encabezado y el mismo número de comas en todas las filas
+  const comas = (t) => (t.match(/,/g) || []).length;
+  const primera = lineas[0].texto.split(",")[0].trim();
+  const hayEncabezado = !leerFecha(primera) && !Number.isFinite(leerNumero(primera, "punto"));
+  if (hayEncabezado && lineas.every((l) => comas(l.texto) === comas(lineas[0].texto))) return { separador: "coma", filas: cortar(",") };
+  // Compatibilidad con la versión 1: «fecha,precio» con coma decimal; se corta solo en la primera coma
+  const partidas = lineas.map((l) => {
+    const i = l.texto.indexOf(",");
+    return i > 0 && leerFecha(l.texto.slice(0, i)) ? { ...l, campos: [l.texto.slice(0, i).trim(), l.texto.slice(i + 1).trim()] } : { ...l, campos: [l.texto.trim()] };
+  });
+  return { separador: partidas.some((f) => f.campos.length === 2) ? "coma tras la fecha" : "ninguno", filas: partidas };
+}
+
+/** Convención decimal común a todos los valores (no se mira la columna índice). */
+function detectarConvencion(textos, separador) {
+  if (separador === "coma") return "punto";
+  if (textos.some((t) => /,\d+$/.test(t) && !/\.\d+$/.test(t) && !/^\d{1,3}(,\d{3})+$/.test(t))) return "coma";
+  if (textos.some((t) => /^\d{1,3}(\.\d{3})+,\d+$/.test(t))) return "coma";
+  return "punto";
+}
+
+/**
+ * Lee la matriz de datos.
+ * Devuelve { valida, errores[], avisos[], indice: { tipo, etiqueta, valores[] }, activos: [{ nombre, precios[], validas, faltantes }],
+ *            observaciones, convencion, separador, conteo: { faltantes, duplicados, invalidos }, lineas[] }.
+ * Las celdas vacías quedan como null. Las filas se ordenan de la más antigua a la más reciente.
+ */
+function leerMatriz(texto, orden = "ascendente") {
+  const errores = [], avisos = [];
+  const conteo = { faltantes: 0, duplicados: 0, invalidos: 0 };
+  const vacia = () => ({ valida: false, errores, avisos, indice: null, activos: [], observaciones: 0, conteo, convencion: "punto", separador: "ninguno", lineas: [] });
+  // Se quitan los espacios finales pero se conservan las tabulaciones: una celda vacía al final sigue siendo una celda
+  const lineas = String(texto ?? "").replace(/^\ufeff/, "").split(/\r?\n/).map((t, i) => ({ texto: t.replace(/[ \u00a0\r]+$/, ""), linea: i + 1 })).filter((l) => l.texto.trim() !== "");
+  if (!lineas.length) { errores.push("No hay filas con datos."); return vacia(); }
+
+  const { separador, filas: filasPartidas } = partirLineas(lineas);
+  let filas = filasPartidas;
+  const ncol = filas[0].campos.length;
+  const soloPrecios = ncol === 1;
+
+  // Encabezado
+  let encabezado = null;
+  const primero = filas[0].campos;
+  const convPrevia = detectarConvencion(filas.flatMap((f) => (soloPrecios ? f.campos : f.campos.slice(1))), separador);
+  const esNumero = (t) => Number.isFinite(leerNumero(t, convPrevia));
+  if (soloPrecios ? !esNumero(primero[0]) : !leerFecha(primero[0]) && !esNumero(primero[0])) { encabezado = primero; filas = filas.slice(1); }
+  if (!filas.length) { errores.push("Solo hay un encabezado; faltan las filas de datos."); return vacia(); }
+
+  // Nombres de los activos: se conservan los encabezados del usuario
+  const nActivos = soloPrecios ? 1 : ncol - 1;
+  const nombres = [];
+  for (let k = 0; k < nActivos; k++) {
+    let nombre = encabezado ? String(encabezado[soloPrecios ? 0 : k + 1] ?? "").trim() : "";
+    if (!nombre || /^precios?$/i.test(nombre)) nombre = `Activo ${k + 1}`;
+    let unico = nombre, j = 2;
+    while (nombres.includes(unico)) unico = `${nombre} (${j++})`;
+    if (unico !== nombre) avisos.push(`El encabezado «${nombre}» está repetido; la otra columna se llamará «${unico}».`);
+    nombres.push(unico);
+  }
+  let etiquetaIndice = soloPrecios ? "Orden" : (encabezado && String(encabezado[0]).trim()) || "";
+
+  // Filas con más o menos columnas que la primera
+  const incompletas = filas.filter((f) => f.campos.length !== ncol);
+  incompletas.slice(0, MAX_MENSAJES_DETALLE).forEach((f) => errores.push(`La fila ${f.linea} tiene ${plural(f.campos.length, "columna", "columnas")} y se esperaban ${ncol}. Si falta un valor, deje la celda vacía.`));
+  if (incompletas.length > MAX_MENSAJES_DETALLE) errores.push(`Hay otras ${incompletas.length - MAX_MENSAJES_DETALLE} filas con un número de columnas distinto.`);
+  filas = filas.filter((f) => f.campos.length === ncol);
+
+  // Índice: fecha, número de orden o, con una sola columna, la posición
+  let tipoIndice = "implicito";
+  let valoresIndice = filas.map((_, i) => i + 1);
+  if (!soloPrecios) {
+    const textosIndice = filas.map((f) => f.campos[0]);
+    const fechas = textosIndice.map(leerFecha);
+    const ordenes = textosIndice.map((t) => (/^\d+$/.test(t) ? Number(t) : null));
+    if (fechas.every(Boolean)) { tipoIndice = "fecha"; valoresIndice = fechas; }
+    else if (ordenes.every((v) => v !== null)) { tipoIndice = "orden"; valoresIndice = ordenes; }
+    else {
+      const usarFecha = fechas.filter(Boolean).length >= ordenes.filter((v) => v !== null).length;
+      const malas = filas.filter((f, i) => (usarFecha ? !fechas[i] : ordenes[i] === null));
+      malas.slice(0, MAX_MENSAJES_DETALLE).forEach((f) => errores.push(`La fila ${f.linea} tiene en la columna ${etiquetaIndice || (usarFecha ? "Fecha" : "Orden")} el valor «${f.campos[0]}», que no es ${usarFecha ? "una fecha (use aaaa-mm-dd o dd/mm/aaaa)" : "un número de orden"}.`));
+      if (malas.length > MAX_MENSAJES_DETALLE) errores.push(`Hay otras ${malas.length - MAX_MENSAJES_DETALLE} filas con un índice no reconocido.`);
+      tipoIndice = usarFecha ? "fecha" : "orden";
+      valoresIndice = usarFecha ? fechas : ordenes;
+    }
+  }
+
+  if (!etiquetaIndice) etiquetaIndice = tipoIndice === "fecha" ? "Fecha" : "Orden";
+
+  // Valores de los activos
+  const convencion = detectarConvencion(filas.flatMap((f) => (soloPrecios ? f.campos : f.campos.slice(1))), separador);
+  const precios = nombres.map(() => []);
+  const invalidos = [];
+  filas.forEach((f) => {
+    for (let k = 0; k < nActivos; k++) {
+      const t = soloPrecios ? f.campos[0] : f.campos[k + 1];
+      if (VALORES_VACIOS.has(String(t).trim().toLowerCase())) { precios[k].push(null); conteo.faltantes++; continue; }
+      const v = leerNumero(t, convencion);
+      if (!Number.isFinite(v)) invalidos.push(`La columna ${nombres[k]} contiene un valor no numérico en la fila ${f.linea} («${t}»).`);
+      else if (v <= 0) invalidos.push(`La columna ${nombres[k]} tiene un precio menor o igual a cero en la fila ${f.linea} (${t}). Los precios deben ser positivos.`);
+      precios[k].push(Number.isFinite(v) && v > 0 ? v : null);
+    }
+  });
+  conteo.invalidos = invalidos.length;
+  invalidos.slice(0, MAX_MENSAJES_DETALLE).forEach((e) => errores.push(e));
+  if (invalidos.length > MAX_MENSAJES_DETALLE) errores.push(`Hay otros ${invalidos.length - MAX_MENSAJES_DETALLE} valores inválidos.`);
+
+  // Orden y duplicados del índice
+  let posiciones = filas.map((_, i) => i).filter((i) => valoresIndice[i] !== null && valoresIndice[i] !== undefined);
+  if (tipoIndice !== "implicito") {
+    const clave = (i) => +valoresIndice[i];
+    const grupos = new Map();
+    posiciones.forEach((i) => grupos.set(clave(i), (grupos.get(clave(i)) || []).concat(i)));
+    const repetidas = [...grupos.values()].filter((g) => g.length > 1);
+    conteo.duplicados = repetidas.reduce((s, g) => s + g.length - 1, 0);
+    repetidas.slice(0, MAX_MENSAJES_DETALLE).forEach((g) => {
+      const v = valoresIndice[g[0]], lineasG = g.map((i) => filas[i].linea).join(", ");
+      errores.push(tipoIndice === "fecha" ? `Se encontraron ${g.length} observaciones con fecha ${fechaCorta(v)} (filas ${lineasG}).` : `El orden ${v} aparece ${g.length} veces (filas ${lineasG}).`);
+    });
+    const ordenadas = posiciones.slice().sort((a, b) => clave(a) - clave(b));
+    if (!ordenadas.every((v, k) => v === posiciones[k])) {
+      const descendente = ordenadas.every((v, k) => v === posiciones[posiciones.length - 1 - k]);
+      avisos.push(descendente
+        ? `Las observaciones venían de la más reciente a la más antigua según la columna ${etiquetaIndice}; se invirtió el orden.`
+        : `Las observaciones no estaban en orden según la columna ${etiquetaIndice}; se ordenaron de la más antigua a la más reciente.`);
+    }
+    posiciones = ordenadas;
+  } else if (orden === "descendente") posiciones.reverse();
+
+  const activos = nombres.map((nombre, k) => {
+    const serie = posiciones.map((i) => precios[k][i]);
+    const validas = serie.filter((v) => v !== null).length;
+    return { nombre, precios: serie, validas, faltantes: serie.length - validas };
+  });
+  activos.forEach((a) => { if (a.validas === 0) errores.push(`La columna ${a.nombre} no tiene valores válidos.`); });
+  if (!errores.length && !activos.some((a) => a.validas >= 11)) {
+    const max = Math.max(...activos.map((a) => a.validas));
+    errores.push(activos.length === 1 ? `Se necesitan al menos 11 precios (10 rendimientos); hay ${max}.` : `Se necesitan al menos 11 precios (10 rendimientos) en algún activo; el más completo tiene ${max}.`);
+  }
+
+  return {
+    valida: errores.length === 0, errores, avisos,
+    indice: { tipo: tipoIndice, etiqueta: etiquetaIndice, valores: posiciones.map((i) => valoresIndice[i]) },
+    activos, observaciones: posiciones.length, convencion, separador, conteo,
+    lineas: posiciones.map((i) => filas[i].linea)
+  };
+}
+
+/**
+ * Serie de un activo de la matriz en el formato que usa el motor desde la versión 1:
+ * { valida, errores[], avisos[], precios[], fechas[] | null, ordenes[] | null, convencion, filasLeidas, nombre }.
+ * Las celdas vacías del activo se excluyen y los rendimientos se calculan entre precios válidos consecutivos.
+ */
+function serieDeActivo(matriz, k) {
+  const errores = [], avisos = [];
+  const a = matriz && matriz.activos[k];
+  if (!matriz || !matriz.valida || !a) return { valida: false, errores: matriz && matriz.errores.length ? matriz.errores : ["No hay un activo seleccionado."], avisos, precios: [], fechas: null, ordenes: null, filasLeidas: 0 };
+  const idx = a.precios.map((v, i) => (v === null ? null : i)).filter((i) => i !== null);
+  const precios = idx.map((i) => a.precios[i]);
+  const fechas = matriz.indice.tipo === "fecha" ? idx.map((i) => matriz.indice.valores[i]) : null;
+  const ordenes = matriz.indice.tipo === "fecha" ? null : idx.map((i) => matriz.indice.valores[i]);
+  if (a.faltantes > 0) avisos.push(`${a.nombre} tiene ${plural(a.faltantes, "observación vacía", "observaciones vacías")}; se excluyeron y los rendimientos se calcularon entre precios válidos consecutivos.`);
+  if (precios.length < 11) errores.push(`${matriz.activos.length > 1 ? `${a.nombre}: se` : "Se"} necesitan al menos 11 precios (10 rendimientos); hay ${precios.length}.`);
+  else if (precios.length < 31) avisos.push("Con menos de 30 rendimientos la volatilidad estimada es muy imprecisa.");
+  return { valida: errores.length === 0, errores, avisos: matriz.avisos.concat(avisos), precios, fechas, ordenes, convencion: matriz.convencion, filasLeidas: precios.length, nombre: a.nombre };
+}
+
+/** Compatibilidad con la versión 1: lee el texto y devuelve la serie del primer activo. */
+function leerSerie(texto, orden = "ascendente") {
+  const m = leerMatriz(texto, orden);
+  return m.valida ? serieDeActivo(m, 0) : { valida: false, errores: m.errores, avisos: m.avisos, precios: [], fechas: null, ordenes: null, convencion: m.convencion, filasLeidas: 0 };
+}
+
+/** Convierte la hoja «Datos» (o la primera) de un libro de Excel al texto del estándar, separado por punto y coma. */
+function textoDesdeLibro(wb) {
+  const nombre = wb.SheetNames.includes("Datos") ? "Datos" : wb.SheetNames[0];
+  const filas = XLSX.utils.sheet_to_json(wb.Sheets[nombre], { header: 1, raw: true, defval: "", blankrows: false });
+  const celda = (v) => (v instanceof Date ? fechaISO(new Date(Date.UTC(v.getFullYear(), v.getMonth(), v.getDate()))) : typeof v === "number" ? String(v) : String(v).trim());
+  return filas.map((fila) => fila.map(celda).join(";")).join("\n");
+}
 /* =========================================================================
    5. CÁLCULO DEL MODELO PARAMÉTRICO
    ========================================================================= */
@@ -1125,6 +1455,9 @@ function analisisLimite({ c, mu, sigma, h, V, L }) {
   salida.L = L;
   salida.cumple = salida.varDinero <= L;
   salida.uso = salida.varDinero / L;
+  // Margen frente al límite: positivo = margen disponible; negativo = exceso sobre el límite
+  salida.margen = L - salida.varDinero;
+  salida.margenPct = salida.margen / L;
   salida.posicionMax = base.varPct > 0 ? L / base.varPct : Infinity;
   salida.sigmaMax = (l + mu * h) / (z * raizH);
   const zMax = (l + mu * h) / (sigma * raizH);
@@ -1167,15 +1500,17 @@ function marcarPaso(id, estadoPaso) {
 
 function actualizarEstadoPasos() {
   marcarPaso("estadoConfiguracion", estado.configuracionConfirmada ? "listo" : null);
-  const serieOk = estado.configuracion && (estado.configuracion.fuente === "parametros" || (estado.serie && estado.serie.valida));
-  marcarPaso("estadoDatos", estado.configuracionConfirmada ? (serieOk ? "listo" : "atencion") : null);
+  const fuente = valorRadio("fuente");
+  const datosOk = fuente === "parametros" ? !!estado.resultados && estado.resultados.cfg.fuente === "parametros" : estado.serie && estado.serie.valida;
+  marcarPaso("estadoDatos", datosOk ? "listo" : estado.serie && fuente === "serie" ? "atencion" : null);
   const r = estado.resultados;
   if (!r) { ["estadoResultados", "estadoRobustez"].forEach((id) => marcarPaso(id, null)); }
   else {
-    marcarPaso("estadoResultados", estado.resultadosDesactualizados || (r.normalidad && r.normalidad.rechaza) ? "atencion" : "listo");
-    const malBT = r.backtesting.some((b) => b.disponible && b.rechaza);
+    // Riesgo: resultados desactualizados, normalidad rechazada o VaR por encima del límite
     const malLim = r.limites.some((l) => l.hayLimite && !l.cumple);
-    marcarPaso("estadoRobustez", malBT || malLim ? "atencion" : "listo");
+    marcarPaso("estadoResultados", estado.resultadosDesactualizados || (r.normalidad && r.normalidad.rechaza) || malLim ? "atencion" : "listo");
+    // Robustez: el backtesting rechaza el modelo en algún nivel
+    marcarPaso("estadoRobustez", r.backtesting.some((b) => b.disponible && b.rechaza) ? "atencion" : "listo");
   }
   marcarPaso("estadoExportacion", estado.exportado ? "listo" : null);
   if (estado.pruebas) marcarPaso("estadoPruebas", estado.pruebas.every((p) => p.ok !== false) ? "listo" : "atencion");
@@ -1199,7 +1534,7 @@ function observarSecciones() {
 }
 
 /* =========================================================================
-   9. CONFIGURACIÓN
+   9. MODELO (CONFIGURACIÓN)
    ========================================================================= */
 
 const valorRadio = (nombre) => document.querySelector(`input[name="${nombre}"]:checked`).value;
@@ -1211,12 +1546,65 @@ function ponerError(idCampo, idError, texto) {
   return !texto;
 }
 
+/** Parámetros del modelo que definen la configuración (el nombre del activo y la fuente pertenecen a Datos). */
+const CLAVES_MODELO = ["valor", "moneda", "horizonte", "niveles", "limite", "rendimiento", "volatilidad", "media", "lambda", "ventana"];
+
+/**
+ * Puntos de partida con respaldo metodológico. Cada uno fija solo los parámetros que define su fuente.
+ * Los valores se escriben como en los campos del formulario.
+ */
+const PRESETS = {
+  personalizada: { nombre: "Personalizada", fuente: "Parámetros definidos por usted.", valores: {} },
+  riskmetrics: {
+    nombre: "RiskMetrics",
+    fuente: "J.P. Morgan y Reuters (1996): volatilidad EWMA con λ = 0,94, rendimiento esperado cero, horizonte de 1 día y 95 % de confianza.",
+    valores: { volatilidad: "ewma", lambda: "0,94", media: "sin", horizonte: "1", niveles: "95" }
+  },
+  basilea: {
+    nombre: "Basilea",
+    fuente: "Comité de Basilea (1996): 99 % de confianza, horizonte de 10 días y backtesting sobre 250 días.",
+    valores: { niveles: "99", horizonte: "10", ventana: "250" }
+  }
+};
+const CAMPOS_PRESET = { lambda: "campoLambda", horizonte: "campoHorizonte", niveles: "campoNiveles", ventana: "campoVentana" };
+
+function aplicarPreset(id) {
+  const p = PRESETS[id];
+  Object.entries(p.valores).forEach(([clave, valor]) => {
+    if (CAMPOS_PRESET[clave]) $(CAMPOS_PRESET[clave]).value = valor;
+    else fijarRadio(clave, valor);
+  });
+  fijarRadio("preset", id);
+  $("notaPreset").textContent = p.fuente;
+  actualizarResumenAvanzado();
+}
+
+/** ¿Los campos siguen coincidiendo con el punto de partida elegido? */
+function presetCoincide(id) {
+  const lista = (t) => t.split(/[;\n]+/).map((x) => leerNumero(x.trim(), "coma")).filter(Number.isFinite).sort((a, b) => a - b).join("|");
+  return Object.entries(PRESETS[id].valores).every(([clave, valor]) => {
+    if (!CAMPOS_PRESET[clave]) return valorRadio(clave) === valor;
+    const actual = $(CAMPOS_PRESET[clave]).value;
+    return clave === "niveles" ? lista(actual) === lista(valor) : leerNumero(actual, "coma") === leerNumero(valor, "coma");
+  });
+}
+
+/** Si el usuario edita un parámetro que fija el punto de partida, este pasa a «Personalizada». */
+function revisarPreset() {
+  const id = valorRadio("preset");
+  if (id !== "personalizada" && !presetCoincide(id)) { fijarRadio("preset", "personalizada"); $("notaPreset").textContent = PRESETS.personalizada.fuente; }
+}
+
+function actualizarResumenAvanzado() {
+  const vol = valorRadio("volatilidad") === "ewma" ? `EWMA λ ${$("campoLambda").value}` : "Volatilidad muestral";
+  $("resumenAvanzada").textContent = `${valorRadio("rendimiento") === "log" ? "Logarítmico" : "Simple"} · ${vol} · ${valorRadio("media") === "con" ? "μ incluida" : "μ = 0"} · ventana ${$("campoVentana").value}`;
+  $("campoLambda").disabled = valorRadio("volatilidad") !== "ewma";
+}
+
 /** Lee y valida la configuración. Devuelve { cfg, errores }. */
 function leerConfiguracion() {
   const errores = [];
   const cfg = {};
-  cfg.activo = $("campoActivo").value.trim();
-  if (!ponerError("campoActivo", "errorActivo", cfg.activo ? "" : "Escriba un nombre para identificar el activo.")) errores.push("Falta el nombre del activo.");
   cfg.valor = leerNumero($("campoValor").value);
   if (!ponerError("campoValor", "errorValor", Number.isFinite(cfg.valor) && cfg.valor > 0 ? "" : "Escriba un monto positivo, por ejemplo 1.000.000.")) errores.push("El valor de la posición debe ser un número positivo.");
   cfg.moneda = $("campoMoneda").value.trim().toUpperCase();
@@ -1229,95 +1617,259 @@ function leerConfiguracion() {
   if (!ponerError("campoNiveles", "errorNiveles", nivelesOk ? "" : "Escriba entre uno y seis niveles entre 80 y 99,99, separados por punto y coma.")) errores.push("Los niveles de confianza no son válidos.");
   const textoLimite = $("campoLimite").value.trim();
   cfg.limite = textoLimite ? leerNumero(textoLimite) : NaN;
-  if (!ponerError("campoLimite", "errorLimite", !textoLimite || (Number.isFinite(cfg.limite) && cfg.limite > 0) ? "" : "Deje vacío o escriba un monto positivo.")) errores.push("El límite de VaR debe ser positivo o quedar vacío.");
+  if (!ponerError("campoLimite", "errorLimite", !textoLimite || (Number.isFinite(cfg.limite) && cfg.limite > 0) ? "" : "Deje vacío o escriba un monto positivo.")) errores.push("El límite de riesgo debe ser positivo o quedar vacío.");
   cfg.fuente = valorRadio("fuente");
   cfg.rendimiento = valorRadio("rendimiento");
   cfg.volatilidad = valorRadio("volatilidad");
   cfg.media = valorRadio("media");
+  cfg.preset = valorRadio("preset");
   cfg.lambda = leerNumero($("campoLambda").value, "coma");
   const lambdaOk = cfg.volatilidad !== "ewma" || (Number.isFinite(cfg.lambda) && cfg.lambda > 0.5 && cfg.lambda < 1);
   if (!ponerError("campoLambda", "errorLambda", lambdaOk ? "" : "λ debe estar entre 0,5 y 1 (sin incluir 1).")) errores.push("El factor λ no es válido.");
   cfg.ventana = Number($("campoVentana").value);
-  const ventanaOk = cfg.fuente !== "serie" || (Number.isInteger(cfg.ventana) && cfg.ventana >= 20 && cfg.ventana <= 1000);
+  const ventanaOk = Number.isInteger(cfg.ventana) && cfg.ventana >= 20 && cfg.ventana <= 1000;
   if (!ponerError("campoVentana", "errorVentana", ventanaOk ? "" : "Use un entero entre 20 y 1000.")) errores.push("La ventana del backtesting debe ser un entero entre 20 y 1000.");
+  if (errores.some((e) => /λ|ventana/.test(e))) $("configAvanzada").open = true;
   return { cfg, errores };
 }
+
+const mismoModelo = (a, b) => !!a && !!b && CLAVES_MODELO.every((k) => JSON.stringify(a[k]) === JSON.stringify(b[k]));
 
 function confirmarConfiguracion(silencioso = false) {
   const { cfg, errores } = leerConfiguracion();
   if (errores.length) {
     estado.configuracionConfirmada = false;
     $("estadoConfirmacion").textContent = "Revise los campos marcados";
-    if (!silencioso) mostrarMensaje("error", "La configuración tiene datos por corregir", errores);
+    delete $("estadoConfirmacion").dataset.tipo;
+    if (!silencioso) mostrarMensaje("error", "El modelo tiene datos por corregir", errores);
     actualizarPaneles();
     return false;
   }
   const anterior = estado.configuracion;
   estado.configuracion = cfg;
   estado.configuracionConfirmada = true;
-  $("estadoConfirmacion").textContent = "Configuración confirmada";
+  $("estadoConfirmacion").textContent = "Modelo confirmado";
   $("estadoConfirmacion").dataset.tipo = "usuario";
-  if (estado.resultados && anterior && JSON.stringify(anterior) !== JSON.stringify(cfg)) estado.resultadosDesactualizados = true;
+  if (estado.resultados && anterior && !mismoModelo(anterior, cfg)) estado.resultadosDesactualizados = true;
   actualizarPaneles();
-  if (!silencioso) mostrarMensaje("exito", "Configuración confirmada", [cfg.fuente === "serie" ? "Continúe con la serie de precios en el paso 02." : "Continúe con la media y la volatilidad en el paso 02."], 4000);
-  if (estado.resultados) recalcularSiPosible();
+  if (!silencioso) mostrarMensaje("exito", "Modelo confirmado", ["Continúe con los datos en el paso 02."], 4000);
+  if (estado.resultados && estado.resultadosDesactualizados) recalcularSiPosible();
   return true;
 }
 
 /** Si ya había resultados y los datos siguen válidos, recalcula para que no queden desactualizados. */
 function recalcularSiPosible() {
-  const cfg = estado.configuracion;
-  if (cfg.fuente === "serie" && estado.serie && estado.serie.valida) calcular();
-  else if (cfg.fuente === "parametros" && leerParametrosDirectos(true)) calcular();
+  const fuente = valorRadio("fuente");
+  if (fuente === "serie" && estado.serie && estado.serie.valida) calcular(true);
+  else if (fuente === "parametros" && estado.configuracion && leerParametrosDirectos(true)) calcular(true);
   else { estado.resultadosDesactualizados = true; mostrarResultados(); }
 }
 
-function actualizarPaneles() {
-  const conf = estado.configuracionConfirmada;
-  const fuente = conf ? estado.configuracion.fuente : valorRadio("fuente");
-  $("panelSinConfirmar").hidden = conf;
-  $("panelSerie").hidden = !conf || fuente !== "serie";
-  $("panelParametros").hidden = !conf || fuente !== "parametros";
-  $("opcionesSerie").hidden = fuente !== "serie";
-  $("campoLambda").disabled = valorRadio("volatilidad") !== "ewma";
-  $("introDatos").textContent = fuente === "serie"
-    ? "Pegue la serie de precios o cargue un archivo CSV. La revisión de calidad se actualiza mientras escribe."
-    : "Escriba la media y la volatilidad diarias del rendimiento, en porcentaje.";
-  actualizarEstadoPasos();
+/** Marca que el modelo cambió después de confirmarlo. */
+function modeloModificado() {
+  revisarPreset();
+  actualizarResumenAvanzado();
+  if (!estado.configuracionConfirmada) return;
+  estado.configuracionConfirmada = false;
+  $("estadoConfirmacion").textContent = "Cambios sin confirmar";
+  delete $("estadoConfirmacion").dataset.tipo;
+  if (estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); }
+  actualizarPaneles();
 }
 
+function actualizarPaneles() {
+  const fuente = valorRadio("fuente");
+  $("panelSerie").hidden = fuente !== "serie";
+  $("panelParametros").hidden = fuente !== "parametros";
+  $("botonLimpiarSerie").hidden = fuente !== "serie";
+  $("introDatos").textContent = fuente === "serie"
+    ? "¿Con qué información? Cargue una matriz de precios: la primera columna es la fecha o el orden y cada columna siguiente es un activo."
+    : "¿Con qué información? Escriba la media y la volatilidad diarias del rendimiento, en porcentaje.";
+  actualizarResumenAvanzado();
+  actualizarEstadoPasos();
+}
 /* =========================================================================
-   10. INGRESO DE DATOS
+   10. DATOS: MATRIZ, SELECCIÓN DE ACTIVO, PLANTILLAS Y CARGA
    ========================================================================= */
 
+function formatearPrecio(v) {
+  return v === null || v === undefined ? '<span class="celda-vacia">vacío</span>' : v.toLocaleString("es-CO", { maximumFractionDigits: 4 });
+}
+function textoIndice(m, i) {
+  const v = m.indice.valores[i];
+  return m.indice.tipo === "fecha" ? fechaCorta(v) : String(v);
+}
+
+/** Lee el texto de datos, conserva el activo elegido si sigue existiendo y actualiza la pantalla. */
 function revisarSerie() {
   const texto = $("campoSerie").value;
   if (!texto.trim()) {
-    estado.serie = null;
-    $("calidadSerie").innerHTML = "";
-    $("graficoPrecios").hidden = true;
+    estado.matriz = null; estado.serie = null;
+    ["calidadSerie", "vistaPrevia"].forEach((id) => ($(id).innerHTML = ""));
+    $("graficoPrecios").hidden = $("bloqueSelector").hidden = $("bloqueOrden").hidden = true;
     actualizarEstadoPasos();
     return;
   }
-  const s = leerSerie(texto, $("campoOrden").value);
-  estado.serie = s;
-  $("campoSerie").setAttribute("aria-invalid", s.valida ? "false" : "true");
-  let html = "";
-  if (s.valida) {
-    const n = s.precios.length - 1;
-    const periodo = s.fechas ? ` del ${fechaISO(s.fechas[0])} al ${fechaISO(s.fechas[s.fechas.length - 1])}` : "";
-    html += aviso("exito", `<p><strong>${plural(s.precios.length, "precio leído", "precios leídos")}</strong>, ${plural(n, "rendimiento", "rendimientos")}${periodo}.</p><p>Separador decimal interpretado: ${s.convencion === "coma" ? "coma" : "punto"}.</p>`);
-    const ventana = Number($("campoVentana").value) || 250;
-    if (n - ventana < 30) html += aviso("advertencia", `<p>El backtesting con ventana de ${ventana} días necesita al menos ${ventana + 30} rendimientos. Puede calcular el VaR, pero no la prueba de Kupiec.</p>`);
-    dibujarPrecios(s);
+  const m = leerMatriz(texto, $("campoOrden").value);
+  estado.matriz = m;
+  $("campoSerie").setAttribute("aria-invalid", m.valida ? "false" : "true");
+  $("bloqueOrden").hidden = !(m.indice && m.indice.tipo === "implicito");
+  if (m.valida) {
+    const disponibles = m.activos.map((a, k) => (a.validas >= 11 ? k : null)).filter((k) => k !== null);
+    if (!disponibles.includes(estado.activoSeleccionado)) estado.activoSeleccionado = disponibles[0];
+    $("campoActivoSel").innerHTML = m.activos.map((a, k) => `<option value="${k}"${a.validas < 11 ? " disabled" : ""}>${escaparHTML(a.nombre)}${a.validas < 11 ? " (datos insuficientes)" : ""}</option>`).join("");
+    $("campoActivoSel").value = String(estado.activoSeleccionado);
+    $("bloqueSelector").hidden = m.activos.length < 2;
   } else {
-    html += aviso("error", s.errores.map((e) => `<p>${escaparHTML(e)}</p>`).join(""));
-    $("graficoPrecios").hidden = true;
+    $("bloqueSelector").hidden = true;
   }
-  if (s.avisos.length) html += aviso("advertencia", s.avisos.map((e) => `<p>${escaparHTML(e)}</p>`).join(""));
-  $("calidadSerie").innerHTML = html;
+  aplicarSeleccion(false);
+}
+
+/** Toma la columna elegida como serie del motor. marcar: señala resultados desactualizados. */
+function aplicarSeleccion(marcar = true) {
+  const m = estado.matriz;
+  const s = m && m.valida ? serieDeActivo(m, estado.activoSeleccionado) : { valida: false, errores: m ? m.errores : [], avisos: m ? m.avisos : [], precios: [] };
+  estado.serie = s;
+  if (s.valida && !estado.nombreManual) $("campoActivo").value = s.nombre;
+  pintarFichaDatos(m, s);
+  pintarVistaPrevia(m);
+  if (s.valida) dibujarPrecios(s); else $("graficoPrecios").hidden = true;
+  if (marcar && estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); }
   actualizarEstadoPasos();
 }
+
+function seleccionarActivo(k) {
+  estado.activoSeleccionado = k;
+  $("campoActivoSel").value = String(k);
+  aplicarSeleccion(true);
+}
+
+function pintarFichaDatos(m, s) {
+  if (!m) { $("calidadSerie").innerHTML = ""; return; }
+  let html = "";
+  if (m.indice && m.observaciones) {
+    const rango = m.indice.tipo === "fecha" ? `${fechaCorta(m.indice.valores[0])} → ${fechaCorta(m.indice.valores[m.observaciones - 1])}`
+      : m.indice.tipo === "orden" ? `orden ${m.indice.valores[0]} → ${m.indice.valores[m.observaciones - 1]}` : "sin índice: orden por posición";
+    const filasActivos = m.activos.map((a) => {
+      const v = a.precios.filter((x) => x !== null);
+      return [escaparHTML(a.nombre), String(a.validas), String(a.faltantes), v.length ? formatearPrecio(Math.min(...v)) : "No aplica", v.length ? formatearPrecio(Math.max(...v)) : "No aplica",
+        `<span class="etiqueta-estado" data-e="${a.validas >= 11 ? "ok" : "mal"}">${a.validas >= 11 ? "Disponible" : "Insuficiente"}</span>`];
+    });
+    html += `<div class="ficha-datos"><h4>${m.valida ? "Datos reconocidos" : "Revise los datos"}</h4>
+      <div class="cifras-ficha"><span><strong>${plural(m.observaciones, "observación", "observaciones")}</strong></span><span>${rango}</span><span><strong>${plural(m.activos.length, "activo identificado", "activos identificados")}</strong></span></div>
+      <div class="cifras-ficha"><span>Valores faltantes: <strong>${m.conteo.faltantes}</strong></span><span>Duplicados: <strong>${m.conteo.duplicados}</strong></span><span>Valores inválidos: <strong>${m.conteo.invalidos}</strong></span><span>Separador: ${m.separador}; decimal: ${m.convencion === "coma" ? "coma" : "punto"}</span></div>
+      <div class="tabla-contenedor">${tablaHTML("Activos de la matriz", [{ t: "Activo" }, { t: "Válidas", num: true }, { t: "Vacías", num: true }, { t: "Mínimo", num: true }, { t: "Máximo", num: true }, { t: "Estado" }], filasActivos)}</div>
+      <span class="estado-ficha" data-e="${m.valida ? "ok" : "mal"}">${m.valida ? "✓ Matriz lista para análisis" : "! Corrija los errores para continuar"}</span></div>`;
+  }
+  if (m.errores.length) html += aviso("error", m.errores.map((e) => `<p>${escaparHTML(e)}</p>`).join(""));
+  if (s && s.valida) {
+    const n = s.precios.length - 1, ventana = Number($("campoVentana").value) || 250;
+    if (n - ventana < 30) html += aviso("advertencia", `<p>El backtesting con ventana de ${ventana} días necesita al menos ${ventana + 30} rendimientos de ${escaparHTML(s.nombre)}; hay ${n}. Puede calcular el VaR, pero no la prueba de Kupiec.</p>`);
+  } else if (s && m.valida && s.errores.length) html += aviso("error", s.errores.map((e) => `<p>${escaparHTML(e)}</p>`).join(""));
+  const avisos = s && s.valida ? s.avisos : m.avisos;
+  if (avisos.length) html += aviso("advertencia", avisos.map((e) => `<p>${escaparHTML(e)}</p>`).join(""));
+  $("calidadSerie").innerHTML = html;
+}
+
+function pintarVistaPrevia(m) {
+  if (!m || !m.observaciones || !m.activos.length) { $("vistaPrevia").innerHTML = ""; return; }
+  const n = m.observaciones;
+  const indices = n <= 6 ? [...Array(n).keys()] : [0, 1, 2, null, n - 3, n - 2, n - 1];
+  const filas = indices.map((i) => (i === null ? [`<span class="celda-vacia">…</span>`, ...m.activos.map(() => "")] : [textoIndice(m, i), ...m.activos.map((a) => formatearPrecio(a.precios[i]))]));
+  $("vistaPrevia").innerHTML = `<h4 class="subtitulo">Vista previa</h4><div class="tabla-contenedor">${tablaHTML(`Primeras y últimas observaciones, ya ordenadas (${m.indice.tipo === "implicito" ? "Orden" : escaparHTML(m.indice.etiqueta)} y valores interpretados)`,
+    [{ t: m.indice.tipo === "implicito" ? "Orden" : m.indice.etiqueta }, ...m.activos.map((a) => ({ t: a.nombre, num: true }))], filas)}</div>`;
+}
+
+/** Pone un texto de datos en la caja y lo revisa. */
+function cargarTextoDatos(texto, origen) {
+  $("campoSerie").value = texto;
+  fijarRadio("fuente", "serie");
+  estado.nombreManual = false;
+  estado.activoSeleccionado = 0;
+  if (origen) estado.origen = origen;
+  pintarOrigen();
+  actualizarPaneles();
+  revisarSerie();
+  if (estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); actualizarEstadoPasos(); }
+}
+
+/** Lee un archivo CSV, de texto o de Excel. */
+function leerArchivo(archivo) {
+  if (!archivo) return;
+  if (archivo.size > 5 * 1024 * 1024) { mostrarMensaje("error", "El archivo es demasiado grande", ["Use un archivo de menos de 5 MB."]); return; }
+  const origen = { tipo: "usuario", detalle: `Archivo cargado por el usuario: ${archivo.name}` };
+  const lector = new FileReader();
+  lector.onerror = () => mostrarMensaje("error", "No se pudo leer el archivo", ["Verifique que sea un archivo CSV, de texto o de Excel."]);
+  if (/\.xlsx?$/i.test(archivo.name)) {
+    if (!bibliotecaExcelDisponible(false)) { mostrarMensaje("error", "No se puede leer Excel sin conexión", ["La lectura de Excel usa SheetJS, que se descarga de internet. Guarde el archivo como CSV y cárguelo de nuevo."]); return; }
+    lector.onload = () => {
+      try { cargarTextoDatos(textoDesdeLibro(XLSX.read(lector.result, { type: "array", cellDates: true })), origen); }
+      catch (e) { console.error(e); mostrarMensaje("error", "No se pudo leer el libro de Excel", ["Verifique que la hoja Datos siga el estándar de la plantilla."]); }
+    };
+    lector.readAsArrayBuffer(archivo);
+  } else {
+    lector.onload = () => cargarTextoDatos(lector.result, origen);
+    lector.readAsText(archivo);
+  }
+}
+
+/* ---------- Plantillas del estándar de datos ---------- */
+
+const PLANTILLA = {
+  encabezado: ["Fecha", "Activo 1", "Activo 2", "Activo 3"],
+  filas: [["2026-01-02", 102.35, 54.21, 87.4], ["2026-01-05", 103.12, 53.98, 88.1], ["2026-01-06", 101.87, 55.03, 86.75], ["2026-01-07", 102.4, 54.6, 87.05], ["2026-01-08", 103.05, 54.12, 87.9],
+    ["2026-01-09", 103.88, 54.35, 88.42], ["2026-01-13", 102.96, 54.9, 87.61], ["2026-01-14", 103.5, 55.27, 88.03], ["2026-01-15", 104.21, 54.88, 88.95], ["2026-01-16", 103.77, 55.4, 88.3],
+    ["2026-01-19", 104.62, 55.81, 89.12], ["2026-01-20", 105.1, 55.36, 89.64]],
+  instrucciones: [
+    "Estándar de datos Kíndynos",
+    "La primera columna es el índice de observación: Fecha (aaaa-mm-dd o dd/mm/aaaa) u Orden (1, 2, 3...).",
+    "Cada columna siguiente es un activo. Reemplace «Activo 1», «Activo 2»... por los nombres reales; Kíndynos conserva los encabezados.",
+    "Cada fila es una observación común a todos los activos. Puede usar una sola columna de activo o tantas como necesite.",
+    "Los precios deben ser mayores que cero. No escriba texto en las celdas de precios.",
+    "No repita fechas ni números de orden.",
+    "Si un activo no tiene precio en una fecha (por ejemplo, un día sin negociación), deje la celda vacía: Kíndynos la excluye solo para ese activo.",
+    "Mantenga la consistencia temporal: una frecuencia (diaria) y la misma zona horaria de cierre para todos los activos.",
+    "Mínimo: 11 precios por activo (10 rendimientos). Recomendado: al menos 250 rendimientos, y ventana más 30 para el backtesting (280 con la ventana por defecto de 250).",
+    "Las 12 filas de ejemplo son ilustrativas y apenas alcanzan el mínimo: bórrelas y pegue sus datos desde la fila 2.",
+    "Los datos se procesan únicamente en su navegador y no se envían a ningún servidor."
+  ]
+};
+
+/** Plantilla CSV con punto y coma y coma decimal, como la abre Excel en español. */
+function textoPlantillaCSV() {
+  const num = (v) => String(v).replace(".", ",");
+  return [PLANTILLA.encabezado.join(";"), ...PLANTILLA.filas.map((f) => [f[0], ...f.slice(1).map(num)].join(";"))].join("\r\n") + "\r\n";
+}
+
+function construirPlantillaExcel() {
+  const wb = XLSX.utils.book_new();
+  const d = crearHojaExcel();
+  PLANTILLA.encabezado.forEach((t, c) => d.poner(0, c, t));
+  PLANTILLA.filas.forEach((f, i) => {
+    const [a, m, dd] = f[0].split("-").map(Number);
+    d.poner(i + 1, 0, serialExcel(new Date(Date.UTC(a, m - 1, dd))), { formato: "yyyy-mm-dd" });
+    f.slice(1).forEach((v, c) => d.poner(i + 1, c + 1, v, { formato: "#,##0.00" }));
+  });
+  d.anchos([14, 14, 14, 14]);
+  const ins = crearHojaExcel();
+  PLANTILLA.instrucciones.forEach((t, i) => ins.poner(i, 0, i === 0 ? t : `${i}. ${t}`));
+  ins.poner(PLANTILLA.instrucciones.length + 1, 0, `${APLICATIVO.nombre} versión ${APLICATIVO.version}. ${APLICATIVO.nota}`);
+  ins.anchos([130]);
+  XLSX.utils.book_append_sheet(wb, d.cerrar(), "Datos");
+  XLSX.utils.book_append_sheet(wb, ins.cerrar(), "Instrucciones");
+  return wb;
+}
+
+function descargarPlantillaCSV() {
+  descargarBytes(new TextEncoder().encode("\ufeff" + textoPlantillaCSV()), "Plantilla_Kindynos_VaR.csv", "text/csv;charset=utf-8");
+}
+function descargarPlantillaExcel() {
+  if (!bibliotecaExcelDisponible()) return;
+  XLSX.writeFile(construirPlantillaExcel(), "Plantilla_Kindynos_VaR.xlsx");
+}
+
+/* ---------- Parámetros directos y cálculo ---------- */
 
 function leerParametrosDirectos(silencioso = false) {
   const mu = leerNumero($("campoMu").value, "coma") / 100;
@@ -1335,20 +1887,34 @@ function leerParametrosDirectos(silencioso = false) {
   return true;
 }
 
-function calcular() {
+function nombreActivo() {
+  const escrito = $("campoActivo").value.trim();
+  if (escrito) return escrito;
+  return valorRadio("fuente") === "serie" && estado.serie && estado.serie.nombre ? estado.serie.nombre : "Activo analizado";
+}
+
+function calcular(silencioso = false) {
+  if (!estado.configuracionConfirmada && !confirmarConfiguracion(true)) {
+    mostrarMensaje("error", "Revise el modelo en el paso 01", ["Hay parámetros por corregir antes de calcular."]);
+    return false;
+  }
   const cfg = estado.configuracion;
-  if (!estado.configuracionConfirmada) { mostrarMensaje("error", "Falta confirmar la configuración", ["Vaya al paso 01 y pulse «Confirmar configuración»."]); return false; }
+  cfg.fuente = valorRadio("fuente");
+  cfg.activo = nombreActivo();
   if (cfg.fuente === "serie") {
     if (!estado.serie || !estado.serie.valida) {
-      mostrarMensaje("error", "La serie de precios no está lista", estado.serie ? estado.serie.errores : ["Pegue los precios o cargue un archivo."]);
+      mostrarMensaje("error", "Los datos no están listos", estado.serie && estado.serie.errores.length ? estado.serie.errores.slice(0, 4) : ["Cargue un archivo, pegue la matriz o use el ejemplo."]);
       return false;
     }
+    cfg.activoColumna = estado.serie.nombre;
+    cfg.matrizActivos = estado.matriz.activos.map((a) => a.nombre);
   } else if (!leerParametrosDirectos()) {
     mostrarMensaje("error", "Faltan parámetros válidos", ["Revise la media y la volatilidad diarias."]);
     return false;
   }
   try {
-    estado.resultados = calcularModelo(cfg, estado.serie);
+    estado.resultados = calcularModelo(cfg, cfg.fuente === "serie" ? estado.serie : null);
+    estado.resultados.matriz = cfg.fuente === "serie" ? estado.matriz : null;
     estado.resultadosDesactualizados = false;
     estado.nivelGrafico = cfg.niveles.length - 1;
     estado.exportado = false;
@@ -1358,15 +1924,15 @@ function calcular() {
     return true;
   } catch (e) {
     console.error(e);
-    mostrarMensaje("error", "No se pudo completar el cálculo", ["Revise los datos. Si el problema continúa, recargue la página."]);
+    if (!silencioso) mostrarMensaje("error", "No se pudo completar el cálculo", ["Revise los datos. Si el problema continúa, recargue la página."]);
     return false;
   }
 }
 
 function marcarOrigenUsuario() {
-  if (estado.origen.tipo === "prueba") {
-    estado.origen = { tipo: "usuario", detalle: "Datos digitados por el usuario (partiendo de un escenario de prueba modificado)" };
-  } else estado.origen = { tipo: "usuario", detalle: "Datos digitados por el usuario" };
+  estado.origen = estado.origen.tipo === "prueba"
+    ? { tipo: "usuario", detalle: "Datos digitados por el usuario (partiendo de un escenario de prueba modificado)" }
+    : { tipo: "usuario", detalle: estado.origen.tipo === "usuario" && /Archivo/.test(estado.origen.detalle) ? (/editado/.test(estado.origen.detalle) ? estado.origen.detalle : `${estado.origen.detalle}, editado en pantalla`) : "Datos digitados por el usuario" };
   pintarOrigen();
 }
 
@@ -1376,9 +1942,8 @@ function pintarOrigen() {
   el.dataset.tipo = o.tipo;
   el.textContent = o.tipo === "prueba" ? "Datos de prueba" : o.tipo === "usuario" ? "Datos del usuario" : "Sin datos";
 }
-
 /* =========================================================================
-   11. PRESENTACIÓN DE RESULTADOS
+   11. RIESGO: RESUMEN, LECTURA Y DIAGNÓSTICO
    ========================================================================= */
 
 function tablaHTML(titulo, columnas, filas) {
@@ -1389,6 +1954,36 @@ function descripcionOrigen(r) {
   return r.origen.tipo === "prueba" ? `Datos de prueba generados por la aplicación (${r.origen.detalle})` : r.origen.detalle || "Datos digitados por el usuario";
 }
 
+/** Texto del margen frente al límite. */
+function textoMargen(l, moneda) {
+  return l.margen >= 0
+    ? `Margen disponible: ${formatearDinero(l.margen, moneda)} (${formatearPorcentaje(l.margenPct, 1)})`
+    : `Exceso sobre el límite: ${formatearDinero(-l.margen, moneda)} (${formatearPorcentaje(-l.margenPct, 1)})`;
+}
+
+/**
+ * Lectura narrativa del resultado, basada en las cifras calculadas. Devuelve una lista de frases.
+ * Con html = true resalta las cifras; sin él, sirve para Excel y PDF.
+ */
+function lecturaResultado(r, f, html = false) {
+  const { cfg } = r;
+  const n = (t) => (html ? `<strong class="cifra">${t}</strong>` : t);
+  const frases = [
+    `Para un horizonte de ${plural(cfg.horizonte, "día", "días")} y un nivel de confianza del ${formatearNivel(f.c)}, Kíndynos estima para ${cfg.activo} un VaR de ${n(formatearDinero(f.varDinero, cfg.moneda))}, equivalente al ${formatearPorcentaje(f.varPct)} de la posición. Bajo los supuestos del modelo, la pérdida solo debería superar ese umbral en el ${formatearPorcentaje(1 - f.c, decimalesPct(1 - f.c))} de los casos.`,
+    `En los escenarios que exceden ese umbral, la pérdida media estimada asciende a ${n(formatearDinero(f.esDinero, cfg.moneda))} según el Expected Shortfall.`
+  ];
+  const lim = r.limites[r.filas.indexOf(f)];
+  if (lim && lim.hayLimite) {
+    frases.push(lim.cumple
+      ? `El VaR representa el ${formatearPorcentaje(lim.uso, 1)} del límite de ${formatearDinero(lim.L, cfg.moneda)} y deja un margen disponible de ${n(formatearDinero(lim.margen, cfg.moneda))}.`
+      : `El VaR representa el ${formatearPorcentaje(lim.uso, 1)} del límite de ${formatearDinero(lim.L, cfg.moneda)}: lo excede en ${n(formatearDinero(-lim.margen, cfg.moneda))}.`);
+  } else frases.push("No se definió un límite de riesgo; al definirlo en el paso 01, Kíndynos calcula el margen y la frontera de riesgo.");
+  return frases;
+}
+
+/** Conclusión en una sola línea de texto, para Excel y PDF. */
+function fraseConclusion(r, f) { return lecturaResultado(r, f).join(" "); }
+
 function mostrarResultados() {
   const r = estado.resultados;
   $("resultadosVacio").hidden = !!r;
@@ -1396,24 +1991,31 @@ function mostrarResultados() {
   if (!r) return;
   const { cfg } = r;
   const principal = r.filas[r.filas.length - 1];
+  const lim = r.limites[r.limites.length - 1];
   if (!(estado.nivelGrafico >= 0 && estado.nivelGrafico < r.filas.length)) estado.nivelGrafico = r.filas.length - 1;
   let avisos = "";
-  if (estado.resultadosDesactualizados) avisos += aviso("advertencia", "<p><strong>Resultados desactualizados.</strong> Cambió la configuración o los datos después del cálculo. Vuelva a calcular en el paso 02.</p>");
+  if (estado.resultadosDesactualizados) avisos += aviso("advertencia", "<p><strong>Resultados desactualizados.</strong> Cambió el modelo o los datos después del cálculo. Vuelva a calcular en el paso 02.</p>");
   if (r.origen.tipo === "prueba") avisos += aviso("prueba", `<p><strong>Datos de prueba:</strong> ${escaparHTML(r.origen.detalle)}. Sirven para aprender y verificar la aplicación; no describen un activo real.</p>`);
-  if (r.advertencias.length) avisos += aviso("advertencia", r.advertencias.map((a) => `<p>${escaparHTML(a)}</p>`).join(""));
   $("avisoResultados").innerHTML = avisos;
 
-  const h = cfg.horizonte;
+  // Resumen de riesgo: solo las cifras esenciales
+  const h = plural(cfg.horizonte, "día", "días");
+  const usoHTML = lim.hayLimite
+    ? `<div class="bloque uso" data-e="${lim.cumple ? "ok" : "mal"}"><div class="rotulo">Uso del límite</div><div class="valor">${formatearPorcentaje(lim.uso, 1)}</div><div class="detalle">${lim.cumple ? "✓ " : "! "}${escaparHTML(textoMargen(lim, cfg.moneda))}</div></div>`
+    : `<div class="bloque uso"><div class="rotulo">Uso del límite</div><div class="valor" style="color:var(--texto-3)">Sin límite</div><div class="detalle">Defínalo en el paso 01</div></div>`;
   $("cifrasPrincipales").innerHTML = `
-    <div class="bloque var"><div class="rotulo">VaR al ${formatearNivel(principal.c)}, ${plural(h, "día", "días")}</div><div class="valor">${formatearDinero(principal.varDinero)}</div><div class="rotulo">${cfg.moneda}, ${formatearPorcentaje(principal.varPct)} de la posición</div></div>
-    <div class="bloque es"><div class="rotulo">Expected Shortfall al ${formatearNivel(principal.c)}</div><div class="valor">${formatearDinero(principal.esDinero)}</div><div class="rotulo">${cfg.moneda}, ${formatearPorcentaje(principal.esPct)} de la posición</div></div>
-    <div class="bloque vol"><div class="rotulo">Volatilidad diaria usada</div><div class="valor">${formatearPorcentaje(r.sigma, 3)}</div><div class="rotulo">${cfg.fuente === "serie" ? (cfg.volatilidad === "ewma" ? `EWMA con λ = ${formatearNumero(cfg.lambda, 2)}` : "Desviación estándar muestral") : "Dato ingresado"}</div></div>`;
-  $("fraseResultado").innerHTML = fraseConclusion(r, principal);
-  $("notaOrigen").textContent = `Origen de los datos: ${descripcionOrigen(r)}. Activo: ${cfg.activo}. Posición: ${formatearDinero(cfg.valor, cfg.moneda)}.`;
+    <div class="bloque"><div class="rotulo">Exposición</div><div class="valor">${formatearCompacto(cfg.valor)}</div><div class="detalle">${escaparHTML(formatearDinero(cfg.valor, cfg.moneda))} en ${escaparHTML(cfg.activo)}</div></div>
+    <div class="bloque var"><div class="rotulo">VaR ${formatearNivel(principal.c)} · ${h}</div><div class="valor">${formatearCompacto(principal.varDinero)}</div><div class="detalle">${escaparHTML(formatearDinero(principal.varDinero, cfg.moneda))}, ${formatearPorcentaje(principal.varPct)} de la posición</div></div>
+    <div class="bloque es"><div class="rotulo">ES ${formatearNivel(principal.c)} · ${h}</div><div class="valor">${formatearCompacto(principal.esDinero)}</div><div class="detalle">${escaparHTML(formatearDinero(principal.esDinero, cfg.moneda))}, ${formatearPorcentaje(principal.esPct)} de la posición</div></div>
+    ${usoHTML}`;
+  $("fraseResultado").innerHTML = lecturaResultado(r, principal, true).map((t) => `<p>${t}</p>`).join("");
+  const matrizTexto = r.matriz && r.matriz.activos.length > 1 ? ` Columna analizada: ${cfg.activoColumna}, de ${r.matriz.activos.length} activos cargados.` : "";
+  $("notaOrigen").textContent = `Origen de los datos: ${descripcionOrigen(r)}.${matrizTexto} Punto de partida del modelo: ${PRESETS[cfg.preset || "personalizada"].nombre}.`;
 
+  // Tabla 1: parámetros
   const filasP = [
-    ["Media diaria del rendimiento (μ)", formatearPorcentaje(r.mu, 4), cfg.media === "con" ? "Incluida" : "Se usa μ = 0"],
-    ["Volatilidad diaria usada (σ)", formatearPorcentaje(r.sigma, 4), cfg.fuente === "serie" ? (cfg.volatilidad === "ewma" ? "EWMA" : "Muestral") : "Ingresada"]
+    ["Media diaria del rendimiento (μ)", formatearPorcentaje(r.mu, 4), cfg.media === "con" ? "Incluida" : "Se asume μ = 0"],
+    ["Volatilidad diaria usada (σ)", formatearPorcentaje(r.sigma, 4), cfg.fuente === "serie" ? (cfg.volatilidad === "ewma" ? `EWMA con λ = ${formatearNumero(cfg.lambda, 2)}` : "Muestral") : "Ingresada"]
   ];
   if (cfg.fuente === "serie") {
     filasP.push(["Volatilidad muestral", formatearPorcentaje(r.sigmaMuestral, 4), "Referencia"]);
@@ -1421,46 +2023,48 @@ function mostrarResultados() {
     filasP.push(["Volatilidad anualizada (σ·√252)", formatearPorcentaje(r.sigma * Math.sqrt(252), 2), "Referencia"]);
     filasP.push(["Número de rendimientos", r.rendimientos.length.toLocaleString("es-CO"), cfg.rendimiento === "log" ? "Logarítmicos" : "Simples"]);
   }
-  filasP.push(["Horizonte", plural(h, "día", "días"), `Factor √h = ${formatearNumero(Math.sqrt(h), 4)}`]);
+  filasP.push(["Horizonte", h, `Factor √h = ${formatearNumero(Math.sqrt(cfg.horizonte), 4)}`]);
   $("tablaParametros").innerHTML = tablaHTML("Tabla 1. Parámetros del modelo", [{ t: "Parámetro" }, { t: "Valor", num: true }, { t: "Detalle" }], filasP.map((f) => f.map(escaparHTML)));
 
+  // Tabla 2: VaR y ES
   const cols = [{ t: "Confianza c", num: true }, { t: "z", num: true }, { t: "σ·√h", num: true }, { t: "μ·h", num: true }, { t: "VaR %", num: true }, { t: `VaR (${cfg.moneda})`, num: true }, { t: "ES %", num: true }, { t: `ES (${cfg.moneda})`, num: true }];
-  if (cfg.fuente === "serie") cols.push({ t: "Excepciones en la muestra", num: true });
-  $("tablaVaR").innerHTML = tablaHTML(`Tabla 2. VaR y Expected Shortfall a ${plural(h, "día", "días")}`, cols, r.filas.map((f) => {
-    const fila = [formatearNivel(f.c), formatearNumero(f.z, 4), formatearPorcentaje(f.sigmaH, 3), formatearPorcentaje(f.muH, 3), formatearPorcentaje(f.varPct), formatearDinero(f.varDinero), formatearPorcentaje(f.esPct), formatearDinero(f.esDinero)];
-    if (cfg.fuente === "serie") fila.push(`${f.excepcionesMuestra} de ${formatearNumero(f.esperadasMuestra, 1)} esperadas`);
-    return fila;
-  }));
+  $("tablaVaR").innerHTML = tablaHTML(`Tabla 2. VaR y Expected Shortfall a ${h}`, cols, r.filas.map((f) => [formatearNivel(f.c), formatearNumero(f.z, 4), formatearPorcentaje(f.sigmaH, 3), formatearPorcentaje(f.muH, 3), formatearPorcentaje(f.varPct), formatearDinero(f.varDinero), formatearPorcentaje(f.esPct), formatearDinero(f.esDinero)]));
 
   $("pestanasNivel").innerHTML = r.filas.map((f, i) => `<button role="tab" type="button" aria-selected="${i === estado.nivelGrafico}" data-i="${i}">${formatearNivel(f.c)}</button>`).join("");
   $("pestanasNivel").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => { estado.nivelGrafico = +b.dataset.i; mostrarResultados(); }));
   dibujarDensidad(r);
+  mostrarDiagnostico(r);
+}
 
-  $("panelNormalidad").hidden = !r.normalidad;
-  if (r.normalidad) {
-    const nn = r.normalidad;
-    $("tablaNormalidad").innerHTML = tablaHTML("Tabla 3. Diagnóstico de normalidad de los rendimientos diarios", [{ t: "Indicador" }, { t: "Valor", num: true }, { t: "Referencia normal", num: true }, { t: "Cómo leerlo", envuelve: true }], [
+/** Diagnóstico del modelo: pruebas transparentes sobre los supuestos, sin puntajes. */
+function mostrarDiagnostico(r) {
+  const { cfg } = r;
+  const nn = r.normalidad;
+  $("panelNormalidad").hidden = !nn;
+  if (nn) {
+    $("tablaNormalidad").innerHTML = tablaHTML("Tabla 3. Normalidad de los rendimientos diarios", [{ t: "Indicador" }, { t: "Valor", num: true }, { t: "Referencia normal", num: true }, { t: "Cómo leerlo", envuelve: true }], [
       ["Asimetría", formatearNumero(nn.asimetria, 4), "0", "Negativa: las caídas fuertes son más frecuentes que las subidas fuertes."],
       ["Curtosis en exceso", formatearNumero(nn.curtosis, 4), "0", "Positiva: colas más gruesas que la normal; el VaR paramétrico se queda corto en los extremos."],
       ["Jarque Bera", formatearNumero(nn.jb, 3), "Pequeño", "Resume asimetría y curtosis. Sigue una chi cuadrado con 2 grados de libertad."],
       ["Valor p", formatearP(nn.pValor), "≥ 0,05", "Menor que 0,05: se rechaza que los rendimientos sean normales."]
     ]);
     $("avisoNormalidad").innerHTML = nn.rechaza
-      ? aviso("advertencia", "<p><strong>El supuesto de normalidad no se cumple.</strong> El VaR paramétrico sigue siendo una referencia útil, pero conviene contrastarlo con el backtesting del paso 04 y leer el ES como una cota más prudente.</p>")
-      : aviso("exito", "<p>No hay evidencia estadística contra la normalidad con un 5 % de significancia. Eso no la demuestra: con pocos datos la prueba tiene poca potencia.</p>");
+      ? aviso("advertencia", "<p><strong>! Se rechaza la normalidad.</strong> El VaR paramétrico sigue siendo una referencia útil, pero conviene contrastarlo con el backtesting del paso 04 y leer el ES como una cota más prudente.</p>")
+      : aviso("exito", "<p><strong>✓ No se rechaza la normalidad</strong> con un 5 % de significancia. Eso no la demuestra: con pocos datos la prueba tiene poca potencia.</p>");
   }
+  $("bloqueExcepcionesMuestra").hidden = cfg.fuente !== "serie";
+  if (cfg.fuente === "serie") {
+    $("tablaExcepcionesMuestra").innerHTML = tablaHTML("Tabla 4. Excepciones del VaR de un día dentro de la muestra", [{ t: "Confianza", num: true }, { t: "Observadas", num: true }, { t: "Esperadas", num: true }, { t: "Tasa observada", num: true }, { t: "Tasa esperada", num: true }],
+      r.filas.map((f) => [formatearNivel(f.c), String(f.excepcionesMuestra), formatearNumero(f.esperadasMuestra, 1), formatearPorcentaje(f.excepcionesMuestra / r.rendimientos.length), formatearPorcentaje(1 - f.c)]));
+  }
+  let html = "";
+  if (cfg.fuente === "serie") html += `<p class="nota">La Tabla 4 compara cada rendimiento con el VaR estimado con toda la muestra: es una revisión descriptiva. La validación fuera de muestra está en el paso 04.</p>`;
+  else html += aviso("info", "<p>Con parámetros conocidos no hay una muestra que diagnosticar. Cargue una serie de precios para revisar la normalidad y hacer backtesting.</p>");
+  if (r.advertencias.length) html += `<h4 class="subtitulo">Advertencias metodológicas</h4>` + aviso("advertencia", r.advertencias.map((a) => `<p>${escaparHTML(a)}</p>`).join(""));
+  $("bloqueAdvertencias").innerHTML = html;
 }
-
-function fraseConclusion(r, f) {
-  const { cfg } = r;
-  let t = `Con ${formatearNivel(f.c)} de confianza, la pérdida de la posición en ${cfg.activo} durante ${plural(cfg.horizonte, "día", "días")} no debería superar <strong class="cifra">${formatearDinero(f.varDinero, cfg.moneda)}</strong>. En el ${formatearPorcentaje(1 - f.c, decimalesPct(1 - f.c))} de los casos en que sí la supere, la pérdida promedio esperada es <strong class="cifra">${formatearDinero(f.esDinero, cfg.moneda)}</strong>.`;
-  const lim = r.limites[r.limites.length - 1];
-  if (lim.hayLimite) t += lim.cumple ? ` El VaR usa el ${formatearPorcentaje(lim.uso, 1)} del límite de ${formatearDinero(lim.L, cfg.moneda)}.` : ` <strong>El VaR supera el límite de ${formatearDinero(lim.L, cfg.moneda)}</strong> en ${formatearPorcentaje(lim.uso - 1, 1)}.`;
-  return t;
-}
-
 /* =========================================================================
-   12. ROBUSTEZ
+   12. ROBUSTEZ: BACKTESTING Y FRONTERA DE RIESGO
    ========================================================================= */
 
 function llenarSelector(id, niveles, porDefecto) {
@@ -1484,6 +2088,7 @@ function mostrarRobustez() {
 
 function textoZona(zona) { return { verde: "Zona verde", amarilla: "Zona amarilla", roja: "Zona roja" }[zona]; }
 function estadoZona(zona) { return { verde: "ok", amarilla: "alerta", roja: "mal" }[zona]; }
+function simboloEstado(e) { return { ok: "✓", alerta: "!", mal: "!" }[e]; }
 
 function mostrarBacktesting() {
   const r = estado.resultados;
@@ -1495,26 +2100,37 @@ function mostrarBacktesting() {
   }
   $("graficoBacktesting").hidden = false;
   const direccion = b.x > b.esperadas ? "más excepciones de las esperadas: el modelo subestima el riesgo" : "menos excepciones de las esperadas: el modelo es demasiado conservador";
-  const tabla = tablaHTML(`Tabla 4. Prueba de Kupiec al ${formatearNivel(b.c)}`, [{ t: "Indicador" }, { t: "Valor", num: true }, { t: "Cómo leerlo", envuelve: true }], [
-    ["Días evaluados (T)", b.T.toLocaleString("es-CO"), `Cada día usa los ${b.W} días previos.`],
-    ["Excepciones observadas (x)", String(b.x), "Días en que la pérdida superó el VaR estimado el día anterior."],
-    ["Excepciones esperadas", formatearNumero(b.esperadas, 2), `(1 − c) · T = ${formatearNumero(b.p, 4)} · ${b.T}`],
-    ["Tasa observada", formatearPorcentaje(b.tasa), `Debería acercarse a ${formatearPorcentaje(b.p)}.`],
-    ["Estadístico LR", formatearNumero(b.lr, 4), `Se compara con ${formatearNumero(b.critico, 3)}, el valor crítico de chi cuadrado con 1 grado de libertad al 5 %.`],
-    ["Valor p", formatearP(b.pValor), "Menor que 0,05: la frecuencia de excepciones no es coherente con el nivel de confianza."],
-    ["Probabilidad binomial acumulada", formatearPorcentaje(b.acumulada), "Base del semáforo de Basilea: verde bajo 95 %, amarilla hasta 99,99 %, roja desde ahí."],
-    ["Semáforo", `<span class="etiqueta-estado" data-e="${estadoZona(b.zona)}">${textoZona(b.zona)}</span>`, "Zonas definidas por el Comité de Basilea (1996)."]
-  ].map((f, i) => (i === 7 ? [f[0], f[1], escaparHTML(f[2])] : f.map(escaparHTML))));
-  const veredicto = b.rechaza
-    ? aviso("error", `<p><strong>El modelo no supera la prueba de Kupiec</strong> (valor p ${formatearP(b.pValor)}). Hubo ${direccion}.${cfg_ewma_sugerencia(r)}</p>`)
-    : aviso("exito", `<p><strong>El modelo supera la prueba de Kupiec</strong> (valor p ${formatearP(b.pValor)}). La frecuencia de excepciones es coherente con el ${formatearNivel(b.c)} de confianza.</p>`);
-  $("resultadoBacktesting").innerHTML = `<div class="tabla-contenedor">${tabla}</div>${veredicto}${b.T < 250 ? aviso("advertencia", "<p>Con menos de 250 días evaluados la prueba tiene poca potencia: puede aceptar modelos mal calibrados.</p>") : ""}`;
+  const eK = b.rechaza ? "mal" : "ok", eZ = estadoZona(b.zona);
+  const resumen = `<div class="resumen-bt"><span>Días evaluados <strong>${b.T.toLocaleString("es-CO")}</strong></span><span>Excepciones esperadas <strong>${formatearNumero(b.esperadas, 2)}</strong></span><span>Excepciones observadas <strong>${b.x}</strong></span><span>Tasa observada <strong>${formatearPorcentaje(b.tasa)}</strong> frente a ${formatearPorcentaje(b.p)}</span></div>`;
+  const tablaK = tablaHTML(`Tabla 5. Prueba de Kupiec al ${formatearNivel(b.c)}`, [{ t: "Indicador" }, { t: "Valor", num: true }], [
+    ["Estadístico LR", formatearNumero(b.lr, 4)], ["Valor crítico (χ², 1 gl, 5 %)", formatearNumero(b.critico, 3)], ["Valor p", formatearP(b.pValor)]
+  ]);
+  const tablaZ = tablaHTML(`Tabla 6. Semáforo de Basilea al ${formatearNivel(b.c)}`, [{ t: "Indicador" }, { t: "Valor", num: true }], [
+    ["Excepciones observadas", String(b.x)], ["Probabilidad binomial acumulada", formatearPorcentaje(b.acumulada)], ["Zona", `<span class="etiqueta-estado" data-e="${eZ}">${simboloEstado(eZ)} ${textoZona(b.zona)}</span>`]
+  ]);
+  $("resultadoBacktesting").innerHTML = `${resumen}
+    <div class="subbloques">
+      <div class="bloque">
+        <h4>Prueba de Kupiec · estadística</h4>
+        <p class="nota">Contrasta si la frecuencia de excepciones es coherente con el nivel de confianza (Kupiec, 1995).</p>
+        <div class="tabla-contenedor">${tablaK}</div>
+        <p class="veredicto" data-e="${eK}">${b.rechaza ? `! Se rechaza el modelo: hubo ${direccion}.${sugerenciaEWMA(r)}` : "✓ No se rechaza el modelo: la frecuencia de excepciones es coherente con el nivel de confianza."}</p>
+      </div>
+      <div class="bloque">
+        <h4>Semáforo de Basilea · supervisor</h4>
+        <p class="nota">Clasifica el número de excepciones por su probabilidad binomial acumulada: verde bajo 95 %, amarilla hasta 99,99 %, roja desde ahí (BCBS, 1996). Fue definido para 250 días al 99 %; aquí se aplica el mismo criterio a ${b.T} días al ${formatearNivel(b.c)}.</p>
+        <div class="tabla-contenedor">${tablaZ}</div>
+        <p class="veredicto" data-e="${eZ}">${simboloEstado(eZ)} ${{ verde: "Zona verde: el número de excepciones es compatible con un modelo bien calibrado.", amarilla: "Zona amarilla: el número de excepciones es inusualmente alto; el modelo merece revisión.", roja: "Zona roja: es muy improbable observar tantas excepciones con un modelo bien calibrado." }[b.zona]}</p>
+      </div>
+    </div>
+    ${b.T < 250 ? aviso("advertencia", "<p>Con menos de 250 días evaluados las pruebas tienen poca potencia: pueden aceptar modelos mal calibrados.</p>") : ""}
+    <p class="nota">La prueba de Kupiec y el semáforo miden cosas distintas: la primera es un contraste de hipótesis; el segundo, un criterio de clasificación supervisora. Pueden no coincidir.</p>`;
   dibujarBacktesting(r, b);
 }
 
-function cfg_ewma_sugerencia(r) {
+function sugerenciaEWMA(r) {
   return r.cfg.volatilidad === "muestral" && r.backtesting.some((b) => b.disponible && b.rechaza && b.x > b.esperadas)
-    ? " Si la volatilidad cambió en el tiempo, pruebe el estimador EWMA en el paso 01." : "";
+    ? " Si la volatilidad cambió en el tiempo, pruebe el estimador EWMA en la configuración avanzada del paso 01." : "";
 }
 
 function mostrarLimites() {
@@ -1522,21 +2138,37 @@ function mostrarLimites() {
   const { cfg } = r;
   const l = r.limites[+$("selectorNivelLim").value || 0];
   if (!l.hayLimite) {
-    $("resultadoLimites").innerHTML = aviso("info", "<p>Escriba un límite de VaR en el paso 01 para saber qué posición, volatilidad, nivel de confianza u horizonte lo harían cruzar. Mientras tanto, el gráfico muestra cómo cambia el VaR.</p>");
+    $("resultadoLimites").innerHTML = aviso("info", "<p>Defina un límite de riesgo en el paso 01 para ver qué posición, volatilidad, nivel de confianza u horizonte lo harían alcanzar. Mientras tanto, el gráfico muestra cómo cambia el VaR.</p>");
     return;
   }
   const infinito = (v, f) => (Number.isFinite(v) ? f(v) : "Sin límite");
-  const filas = [
-    ["Valor de la posición", formatearDinero(cfg.valor, cfg.moneda), infinito(l.posicionMax, (v) => formatearDinero(v, cfg.moneda)), "Posición más grande que se puede mantener sin exceder el límite."],
-    ["Volatilidad diaria", formatearPorcentaje(r.sigma, 3), formatearPorcentaje(l.sigmaMax, 3), "Volatilidad a partir de la cual el VaR supera el límite."],
-    ["Nivel de confianza", formatearNivel(l.c), l.confianzaMax >= 0.99995 ? "Más de 99,99 %" : formatearPorcentaje(l.confianzaMax), "Nivel de confianza con el que el VaR iguala el límite."],
-    ["Horizonte", plural(cfg.horizonte, "día", "días"), infinito(l.horizonteMax, (v) => `${formatearNumero(v, 1)} días`), "Días que se puede mantener la posición antes de cruzar el límite."]
+  const e = l.cumple ? "ok" : "mal";
+  const escalaMax = Math.max(l.varDinero, l.L) * 1.15;
+  const pct = (v) => `${Math.max(0, Math.min(100, (v / escalaMax) * 100)).toFixed(2)}%`;
+  const cifras = [
+    ["Posición límite", infinito(l.posicionMax, (v) => formatearDinero(v, cfg.moneda))],
+    ["Volatilidad límite", formatearPorcentaje(l.sigmaMax, 3)],
+    ["Confianza equivalente", l.confianzaMax >= 0.99995 ? "Más de 99,99 %" : formatearPorcentaje(l.confianzaMax)],
+    ["Horizonte límite", infinito(l.horizonteMax, (v) => `${formatearNumero(v, 1)} días`)]
   ];
-  $("resultadoLimites").innerHTML = `${aviso(l.cumple ? "exito" : "error", `<p>${l.cumple ? "El VaR está dentro del límite" : "El VaR supera el límite"}: ${formatearDinero(l.varDinero, cfg.moneda)} frente a ${formatearDinero(l.L, cfg.moneda)} (${formatearPorcentaje(l.uso, 1)} de uso).</p>`)}
-    <div class="tabla-contenedor">${tablaHTML("Tabla 5. Valor de cada variable que lleva el VaR exactamente al límite", [{ t: "Variable" }, { t: "Valor actual", num: true }, { t: "Valor que iguala el límite", num: true }, { t: "Lectura", envuelve: true }], filas.map((f) => f.map(escaparHTML)))}</div>
-    <p class="nota">Cada fila cambia una sola variable y deja las demás como están.</p>`;
+  const filas = [
+    ["Valor de la posición", formatearDinero(cfg.valor, cfg.moneda), cifras[0][1], "Posición más grande que se puede mantener sin exceder el límite."],
+    ["Volatilidad diaria", formatearPorcentaje(r.sigma, 3), cifras[1][1], "Volatilidad a partir de la cual el VaR supera el límite."],
+    ["Nivel de confianza", formatearNivel(l.c), cifras[2][1], "Nivel de confianza con el que el VaR iguala el límite."],
+    ["Horizonte", plural(cfg.horizonte, "día", "días"), cifras[3][1], "Días que se puede mantener la posición antes de alcanzar el límite."]
+  ];
+  $("resultadoLimites").innerHTML = `<div class="frontera">
+      <div class="resumen-bt" style="margin-top:0"><span>Límite <strong>${formatearDinero(l.L, cfg.moneda)}</strong></span><span>VaR al ${formatearNivel(l.c)} <strong>${formatearDinero(l.varDinero, cfg.moneda)}</strong></span><span>Uso <strong>${formatearPorcentaje(l.uso, 1)}</strong></span></div>
+      <div class="barra-limite" data-e="${e}" role="img" aria-label="El VaR usa el ${formatearPorcentaje(l.uso, 1)} del límite">
+        <div class="relleno" style="width:${pct(l.varDinero)}"></div>
+        <div class="marca-limite" style="left:${pct(l.L)}"></div><span class="rotulo-limite" style="left:${pct(l.L)}">Límite</span>
+      </div>
+      <p class="veredicto" data-e="${e}">${l.cumple ? "✓" : "!"} ${escaparHTML(textoMargen(l, cfg.moneda))}. Margen = (L − VaR) / L = ${formatearPorcentaje(l.margenPct, 1)}.</p>
+      <div class="cifras-frontera">${cifras.map(([t, v]) => `<div><span>${t}</span><strong>${v}</strong></div>`).join("")}</div>
+    </div>
+    <div class="tabla-contenedor">${tablaHTML("Tabla 7. Valor de cada variable que lleva el VaR exactamente al límite", [{ t: "Variable" }, { t: "Valor actual", num: true }, { t: "Valor que iguala el límite", num: true }, { t: "Lectura", envuelve: true }], filas.map((f) => f.map(escaparHTML)))}</div>
+    <p class="nota">Cada fila cambia una sola variable y deja las demás como están. Un margen negativo indica que el VaR ya supera el límite.</p>`;
 }
-
 /* =========================================================================
    13. GRÁFICOS SVG
    ========================================================================= */
@@ -1601,8 +2233,8 @@ function dibujarPrecios(s) {
   const pts = s.precios.map((p, i) => `${xs(i).toFixed(1)},${ys(p).toFixed(1)}`).join(" ");
   const tx = ticks(0, n - 1, 5).filter((v) => Number.isInteger(v));
   $("graficoPrecios").hidden = false;
-  $("graficoPrecios").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Serie de ${n} precios, entre ${formatearNumero(min, 2)} y ${formatearNumero(max, 2)}">
-    ${ejesSVG({ W, H, m, xs, ys, ticksX: tx, ticksY: ticks(min, max, 4), fx: (v) => (s.fechas ? fechaISO(s.fechas[v]) : `Día ${v + 1}`), fy: (v) => formatearNumero(v, max < 100 ? 2 : 0) })}
+  $("graficoPrecios").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Serie de ${n} precios${s.nombre ? ` de ${escaparHTML(s.nombre)}` : ""}, entre ${formatearNumero(min, 2)} y ${formatearNumero(max, 2)}">
+    ${ejesSVG({ W, H, m, xs, ys, ticksX: tx, ticksY: ticks(min, max, 4), fx: (v) => (s.fechas ? fechaISO(s.fechas[v]) : s.ordenes ? `Obs. ${s.ordenes[v]}` : `Día ${v + 1}`), fy: (v) => formatearNumero(v, max < 100 ? 2 : 0) })}
     <polyline points="${pts}" fill="none" stroke="#9DB4FF" stroke-width="1.6"/></svg>`;
 }
 
@@ -1624,7 +2256,7 @@ function dibujarDensidad(r) {
     maxY = Math.max(maxY, ...hist.map((b) => b.dens));
   }
   const xs = escala(x0, x1, m.l, W - m.r), ys = escala(0, maxY * 1.08, H - m.b, m.t);
-  const umbral = -f.varPct;
+  const umbral = -f.varPct, umbralES = -f.esPct;
   const pts = [];
   for (let i = 0; i <= 200; i++) { const v = x0 + ((x1 - x0) * i) / 200; pts.push([v, pdf(v)]); }
   const camino = pts.map(([v, d], i) => `${i ? "L" : "M"}${xs(v).toFixed(1)} ${ys(d).toFixed(1)}`).join(" ");
@@ -1637,7 +2269,12 @@ function dibujarDensidad(r) {
     ${caminoCola ? `<path d="${caminoCola}" fill="rgba(255,111,91,.55)"/>` : ""}
     <path d="${camino}" fill="none" stroke="#7FE0C4" stroke-width="2.4"/>
     <line x1="${xs(umbral)}" x2="${xs(umbral)}" y1="${ys(0)}" y2="${m.t + 10}" stroke="#FF6F5B" stroke-width="2" stroke-dasharray="5 4"/>
-    <text x="${xs(umbral) - 6}" y="${m.t + 22}" text-anchor="end" style="fill:#FF6F5B;font-weight:700">−VaR = ${formatearPorcentaje(umbral)}</text></svg>`;
+    <text x="${xs(umbral) + 6}" y="${m.t + 22}" text-anchor="start" style="fill:#FF6F5B;font-weight:700">VaR ${formatearPorcentaje(-umbral)}</text>
+    <line x1="${xs(umbralES)}" x2="${xs(umbralES)}" y1="${ys(0)}" y2="${m.t + 44}" stroke="#FF9C8C" stroke-width="1.6"/>
+    <text x="${xs(umbralES) - 6}" y="${m.t + 56}" text-anchor="end" style="fill:#FF9C8C;font-weight:700">ES ${formatearPorcentaje(-umbralES)}</text>
+    <line x1="${xs(mu)}" x2="${xs(mu)}" y1="${ys(0)}" y2="${ys(pdf(mu))}" stroke="rgba(236,238,255,.45)" stroke-width="1.2" stroke-dasharray="3 4"/>
+    <text x="${xs(mu) + 6}" y="${ys(pdf(mu)) + 14}" style="fill:#B3B8E6">μ·h ${formatearPorcentaje(mu, 2)}</text></svg>
+    <div class="leyenda"><span><i style="background:var(--calma)"></i>Zona de confianza (${formatearNivel(f.c)})</span><span><i style="background:var(--brasa)"></i>Cola de pérdida: VaR es el umbral</span><span><i style="background:#FF9C8C"></i>ES: pérdida promedio más allá del umbral</span></div>`;
   $("notaDensidad").textContent = conHist
     ? "Las barras son el histograma de los rendimientos diarios observados; la curva es la normal ajustada. Si las barras de la cola sobresalen de la curva, la normal subestima las pérdidas extremas."
     : `La curva es la distribución normal del rendimiento a ${plural(cfg.horizonte, "día", "días")}. El histograma de la muestra solo se dibuja con horizonte de un día, porque los datos son diarios.`;
@@ -1762,7 +2399,7 @@ function construirLibroExcel(r) {
   };
   param("V", `Valor de la posición (${cfg.moneda})`, cfg.valor, { formato: FMT_DINERO, nota: "Dato del usuario" });
   param("h", "Horizonte en días", cfg.horizonte, { formato: FMT_ENTERO, nota: "Dato del usuario" });
-  param("incl", "Incluir la media (1 sí, 0 no)", cfg.media === "con" ? 1 : 0, { formato: FMT_ENTERO, nota: "Variante elegida" });
+  param("incl", "Incluir rendimiento esperado μ (1 sí, 0 no)", cfg.media === "con" ? 1 : 0, { formato: FMT_ENTERO, nota: cfg.media === "con" ? "VaR absoluto" : "Se asume μ = 0 (VaR relativo)" });
   if (esSerie) {
     param("lambda", "Factor λ de EWMA", cfg.lambda, { formato: "0.00", nota: "RiskMetrics (1996) publica 0,94" });
     param("n", "Número de rendimientos", n, { formula: `COUNT(${rangoR})`, formato: FMT_ENTERO });
@@ -1791,13 +2428,13 @@ function construirLibroExcel(r) {
   // ---------- Datos ----------
   if (esSerie) {
     const hD = crearHojaExcel();
-    hD.poner(0, 0, `Serie de precios y rendimientos ${cfg.rendimiento === "log" ? "logarítmicos" : "simples"}`);
+    hD.poner(0, 0, `Serie de precios y rendimientos ${cfg.rendimiento === "log" ? "logarítmicos" : "simples"} de ${cfg.activoColumna || cfg.activo}`);
     hD.poner(1, 0, "Volver al menú", { enlace: enlaceHoja("Menu"), ayuda: "Ir al menú" });
-    ["Fecha", "Precio", "Rendimiento", "Varianza EWMA del día"].forEach((t, c) => hD.poner(3, c, t));
+    [r.serie.fechas ? "Fecha" : "Orden", "Precio", "Rendimiento", "Varianza EWMA del día"].forEach((t, c) => hD.poner(3, c, t));
     const s = r.serie;
     s.precios.forEach((precio, i) => {
       const fila = 4 + i;
-      if (s.fechas) hD.poner(fila, 0, serialExcel(s.fechas[i]), { formato: "yyyy-mm-dd" }); else hD.poner(fila, 0, `Día ${i + 1}`);
+      if (s.fechas) hD.poner(fila, 0, serialExcel(s.fechas[i]), { formato: "yyyy-mm-dd" }); else hD.poner(fila, 0, s.ordenes ? s.ordenes[i] : i + 1, { formato: FMT_ENTERO });
       hD.poner(fila, 1, precio, { formato: "#,##0.00##" });
       if (i >= 1) {
         const t = i - 1;
@@ -1807,7 +2444,24 @@ function construirLibroExcel(r) {
       }
     });
     hD.anchos([14, 14, 14, 22]);
-    hojas.push(["Datos", hD.cerrar(), "Precios, rendimientos y varianza EWMA"]);
+    hojas.push(["Datos", hD.cerrar(), `Precios, rendimientos y varianza EWMA de ${cfg.activoColumna || cfg.activo}`]);
+    // Matriz completa cargada, para trazabilidad
+    const m = r.matriz;
+    if (m) {
+      const hMz = crearHojaExcel();
+      hMz.poner(0, 0, `Matriz de datos cargada: ${plural(m.observaciones, "observación", "observaciones")} y ${plural(m.activos.length, "activo", "activos")}`);
+      hMz.poner(1, 0, "Volver al menú", { enlace: enlaceHoja("Menu"), ayuda: "Ir al menú" });
+      hMz.poner(2, 0, `Activo analizado: ${cfg.activoColumna}. Las celdas vacías son valores faltantes; se excluyen solo para su activo.`);
+      hMz.poner(3, 0, m.indice.tipo === "fecha" ? m.indice.etiqueta : "Orden");
+      m.activos.forEach((a, k) => hMz.poner(3, k + 1, a.nombre));
+      for (let i = 0; i < m.observaciones; i++) {
+        const v = m.indice.valores[i];
+        hMz.poner(4 + i, 0, m.indice.tipo === "fecha" ? serialExcel(v) : v, { formato: m.indice.tipo === "fecha" ? "yyyy-mm-dd" : FMT_ENTERO });
+        m.activos.forEach((a, k) => { if (a.precios[i] !== null) hMz.poner(4 + i, k + 1, a.precios[i], { formato: "#,##0.00##" }); });
+      }
+      hMz.anchos([14, ...m.activos.map(() => 16)]);
+      hojas.push(["Matriz", hMz.cerrar(), "Matriz completa cargada (todos los activos)"]);
+    }
   }
   hojas.push(["Parametros", hP.cerrar(), "Media, volatilidad y diagnóstico de normalidad"]);
 
@@ -1877,12 +2531,12 @@ function construirLibroExcel(r) {
 
   // ---------- Robustez ----------
   const hR = crearHojaExcel();
-  hR.poner(0, 0, "Robustez: valor de cada variable que lleva el VaR al límite");
+  hR.poner(0, 0, "Frontera de riesgo: valor de cada variable que lleva el VaR al límite");
   hR.poner(1, 0, "Volver al menú", { enlace: enlaceHoja("Menu"), ayuda: "Ir al menú" });
   if (Number.isFinite(cfg.limite)) {
-    hR.poner(3, 0, `Límite de VaR (${cfg.moneda})`); hR.poner(3, 1, cfg.limite, { formato: FMT_DINERO });
+    hR.poner(3, 0, `Límite de riesgo (${cfg.moneda})`); hR.poner(3, 1, cfg.limite, { formato: FMT_DINERO });
     hR.poner(4, 0, "Límite como fracción de la posición l = L / V"); hR.poner(4, 1, cfg.limite / cfg.valor, { formula: `B4/${P.V}`, formato: FMT_PCT4 });
-    ["Confianza c", "z", `VaR (${cfg.moneda})`, "Uso del límite", "Posición máxima", "Volatilidad máxima", "Confianza máxima", "Horizonte máximo (días)"].forEach((t, c) => hR.poner(6, c, t));
+    ["Confianza c", "z", `VaR (${cfg.moneda})`, "Uso del límite", "Posición límite", "Volatilidad límite", "Confianza equivalente", "Horizonte límite (días)", `Margen (${cfg.moneda})`, "Margen %"].forEach((t, c) => hR.poner(6, c, t));
     r.limites.forEach((l, i) => {
       const k = 7 + i, e = k + 1, fv = filasVaR[i];
       hR.poner(k, 0, l.c, { formula: `VaR!A${fv}`, formato: "0.00%" });
@@ -1896,10 +2550,12 @@ function construirLibroExcel(r) {
       hR.poner(k, 7, Number.isFinite(l.horizonteMax) ? l.horizonteMax : "Sin límite", {
         formula: `IF(ABS(${mu})<1E-15,($B$5/${zs})^2,IF(${zs}^2-4*${mu}*$B$5<0,"Sin límite",((${zs}-SQRT(${zs}^2-4*${mu}*$B$5))/(2*${mu}))^2))`, formato: "0.0"
       });
+      hR.poner(k, 8, l.margen, { formula: `$B$4-C${e}`, formato: FMT_DINERO });
+      hR.poner(k, 9, l.margenPct, { formula: `($B$4-C${e})/$B$4`, formato: "0.00%" });
     });
-    hR.poner(8 + r.limites.length, 0, "Cada columna cambia una sola variable y deja las demás fijas. Horizonte: raíz positiva de μ·s² − z·σ·s + l = 0 con s = √h.");
-  } else hR.poner(3, 0, "No se definió un límite de VaR. Escríbalo en el paso 01 de la aplicación para obtener este análisis.");
-  hR.anchos([44, 14, 18, 14, 18, 18, 16, 22]);
+    hR.poner(8 + r.limites.length, 0, "Cada columna cambia una sola variable y deja las demás fijas. Horizonte: raíz positiva de μ·s² − z·σ·s + l = 0 con s = √h. Margen = (L − VaR) / L: positivo es margen disponible; negativo, exceso sobre el límite.");
+  } else hR.poner(3, 0, "No se definió un límite de riesgo. Escríbalo en el paso 01 de la aplicación para obtener este análisis.");
+  hR.anchos([44, 14, 18, 14, 18, 18, 18, 22, 18, 12]);
   hojas.push(["Robustez", hR.cerrar(), "Posición, volatilidad, confianza y horizonte que igualan el límite"]);
 
   // ---------- Resultado ----------
@@ -1910,12 +2566,19 @@ function construirLibroExcel(r) {
   const lineas = [
     ["Activo", cfg.activo], ["Método", "VaR paramétrico (varianza y covarianza), un activo"],
     ["Fuente de los parámetros", esSerie ? `Serie histórica, rendimientos ${cfg.rendimiento === "log" ? "logarítmicos" : "simples"}, volatilidad ${cfg.volatilidad === "ewma" ? "EWMA" : "muestral"}` : "Media y volatilidad ingresadas"],
-    ["Tratamiento de la media", cfg.media === "con" ? "Incluida (VaR absoluto)" : "Media cero (VaR relativo)"],
+    ["Rendimiento esperado (μ)", cfg.media === "con" ? "Incluido (VaR absoluto)" : "Se asume μ = 0 (VaR relativo)"],
+    ["Punto de partida del modelo", PRESETS[cfg.preset || "personalizada"].nombre],
+    ...(r.matriz && r.matriz.activos.length > 1 ? [["Activo analizado", `${cfg.activoColumna} (columna de una matriz con ${plural(r.matriz.activos.length, "activo", "activos")})`]] : []),
     [`Valor de la posición (${cfg.moneda})`, cfg.valor, `${P.V}`, FMT_DINERO],
     ["Horizonte (días)", cfg.horizonte, `${P.h}`, FMT_ENTERO],
     ["Nivel de confianza principal", principal.c, `VaR!A${fvP}`, "0.00%"],
     [`VaR (${cfg.moneda})`, principal.varDinero, `VaR!F${fvP}`, FMT_DINERO],
     [`Expected Shortfall (${cfg.moneda})`, principal.esDinero, `VaR!I${fvP}`, FMT_DINERO],
+    ...(Number.isFinite(cfg.limite) ? [
+      [`Límite de riesgo (${cfg.moneda})`, cfg.limite, "Robustez!B4", FMT_DINERO],
+      ["Uso del límite", r.limites[r.limites.length - 1].uso, `Robustez!D${7 + r.limites.length}`, "0.00%"],
+      [`Margen frente al límite (${cfg.moneda})`, r.limites[r.limites.length - 1].margen, `Robustez!I${7 + r.limites.length}`, FMT_DINERO]
+    ] : []),
     ["Conclusión", fraseConclusion(r, principal).replace(/<[^>]+>/g, "")]
   ];
   lineas.forEach(([et, v, f, z], i) => { hF.poner(3 + i, 0, et); hF.poner(3 + i, 1, v, { formula: f, formato: z }); });
@@ -1930,7 +2593,7 @@ function construirLibroExcel(r) {
   hM.poner(1, 0, "Valor en riesgo paramétrico de un activo");
   let fm = 3;
   if (r.origen.tipo === "prueba") { hM.poner(fm, 0, "ADVERTENCIA"); hM.poner(fm++, 1, "Datos de prueba generados por la aplicación. No describen un activo real."); }
-  [["Activo", cfg.activo], ["Origen de los datos", descripcionOrigen(r)], ["Fecha del cálculo", r.fecha.toLocaleString("es-CO")], ["VaR principal", `${formatearDinero(principal.varDinero, cfg.moneda)} al ${formatearNivel(principal.c)}, ${plural(cfg.horizonte, "día", "días")}`]]
+  [["Activo", cfg.activo], ["Origen de los datos", descripcionOrigen(r)], ["Punto de partida del modelo", PRESETS[cfg.preset || "personalizada"].nombre], ...(r.matriz && r.matriz.activos.length > 1 ? [["Matriz cargada", `${plural(r.matriz.activos.length, "activo", "activos")}: ${r.matriz.activos.map((a) => a.nombre).join(", ")}`]] : []), ["Fecha del cálculo", r.fecha.toLocaleString("es-CO")], ["VaR principal", `${formatearDinero(principal.varDinero, cfg.moneda)} al ${formatearNivel(principal.c)}, ${plural(cfg.horizonte, "día", "días")}`]]
     .forEach(([a, b]) => { hM.poner(fm, 0, a); hM.poner(fm++, 1, b); });
   fm++;
   hM.poner(fm++, 0, "Contenido del libro");
@@ -2243,6 +2906,10 @@ function dibujarCurvaPDF(doc, r, f) {
   doc.linea(x0, yBase, x0 + ancho, yBase, { color: COLORES_PDF.tinta3, grosor: 0.6 });
   doc.linea(X(umbral), yBase, X(umbral), doc.y + 8, { color: COLORES_PDF.brasa, grosor: 1.2 });
   doc.texto(X(umbral) - 4, doc.y + 16, `-VaR = ${formatearPorcentaje(umbral)}`, { tamano: 8, negrita: true, color: COLORES_PDF.brasa, alineacion: "der" });
+  const umbralES = -f.esPct;
+  doc.linea(X(umbralES), yBase, X(umbralES), doc.y + 34, { color: COLORES_PDF.coral, grosor: 1 });
+  doc.texto(X(umbralES) - 4, doc.y + 42, `-ES = ${formatearPorcentaje(umbralES)}`, { tamano: 7.5, negrita: true, color: COLORES_PDF.coral, alineacion: "der" });
+  doc.linea(X(mu), yBase, X(mu), Y(pdf(mu)), { color: COLORES_PDF.tinta3, grosor: 0.5 });
   doc.texto(X(mu), yBase + 11, "media", { tamano: 7.5, color: COLORES_PDF.tinta2, alineacion: "centro" });
   doc.y = yBase + 22;
 }
@@ -2261,7 +2928,7 @@ function generarInformePDF(r = estado.resultados) {
   doc.rect(x0 + 7, 34, 5, 5, { relleno: COLORES_PDF.brasa });
   doc.texto(x0 + 20, 39.5, `${APLICATIVO.nombre} versión ${APLICATIVO.version}`, { tamano: 9, negrita: true, color: COLORES_PDF.calmaClara });
   doc.texto(x0, 76, "Informe ejecutivo", { tamano: 26, negrita: true, color: COLORES_PDF.blanco });
-  doc.texto(x0, 98, "Valor en riesgo paramétrico", { tamano: 12, color: "#D5D8F5" });
+  doc.texto(x0, 98, "Riesgo de mercado: VaR paramétrico", { tamano: 12, color: "#D5D8F5" });
   doc.texto(doc.ancho - doc.margen.der, 98, `Fecha del cálculo: ${r.fecha.toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}`, { tamano: 8.5, color: "#D5D8F5", alineacion: "der" });
   doc.y = 166;
 
@@ -2280,7 +2947,13 @@ function generarInformePDF(r = estado.resultados) {
   doc.texto(xd, doc.y + 48, formatearDinero(principal.esDinero, cfg.moneda), { tamano: 18, negrita: true, color: COLORES_PDF.brasa, alineacion: "der" });
   doc.texto(xd, doc.y + 66, `${formatearPorcentaje(principal.esPct)} de la posición`, { tamano: 8.5, color: COLORES_PDF.tinta2, alineacion: "der" });
   doc.y += altoCaja + 10;
-  const hechos = [fraseConclusion(r, principal).replace(/<[^>]+>/g, "")];
+  // Resumen de riesgo
+  const limP = r.limites[r.limites.length - 1];
+  doc.tabla([{ titulo: "Exposición", ancho: 0.25, alineacion: "der" }, { titulo: `VaR ${formatearNivel(principal.c)}`, ancho: 0.25, alineacion: "der" }, { titulo: `ES ${formatearNivel(principal.c)}`, ancho: 0.25, alineacion: "der" }, { titulo: "Uso del límite", ancho: 0.25, alineacion: "der" }],
+    [[formatearDinero(cfg.valor, cfg.moneda), { texto: formatearDinero(principal.varDinero, cfg.moneda), negrita: true }, formatearDinero(principal.esDinero, cfg.moneda),
+      limP.hayLimite ? { texto: `${formatearPorcentaje(limP.uso, 1)}`, negrita: true, color: limP.cumple ? COLORES_PDF.verde : COLORES_PDF.coral } : "Sin límite"]]);
+  if (limP.hayLimite) doc.parrafo(`${textoMargen(limP, cfg.moneda)} frente al límite de ${formatearDinero(limP.L, cfg.moneda)}.`, { tamano: 8.8, negrita: true, color: limP.cumple ? COLORES_PDF.verde : COLORES_PDF.coral });
+  const hechos = lecturaResultado(r, principal).slice(0, limP.hayLimite ? 3 : 2);
   const btP = r.backtesting[r.backtesting.length - 1];
   if (btP.disponible) hechos.push(`Backtesting al ${formatearNivel(btP.c)}: ${btP.x} excepciones en ${btP.T} días frente a ${formatearNumero(btP.esperadas, 1)} esperadas; valor p de Kupiec ${formatearP(btP.pValor)} (${btP.rechaza ? "el modelo se rechaza" : "el modelo no se rechaza"}), ${textoZona(btP.zona).toLowerCase()}.`);
   if (r.normalidad) hechos.push(r.normalidad.rechaza ? `La normalidad se rechaza (Jarque Bera ${formatearNumero(r.normalidad.jb, 2)}, valor p ${formatearP(r.normalidad.pValor)}); el VaR puede subestimar las pérdidas extremas.` : "No se rechaza la normalidad de los rendimientos al 5 %.");
@@ -2304,7 +2977,9 @@ function generarInformePDF(r = estado.resultados) {
     ["Método", "VaR paramétrico (varianza y covarianza), un activo"],
     ["Fuente de los parámetros", cfg.fuente === "serie" ? `Serie de ${r.serie.precios.length.toLocaleString("es-CO")} precios (${r.rendimientos.length.toLocaleString("es-CO")} rendimientos ${cfg.rendimiento === "log" ? "logarítmicos" : "simples"})` : "Media y volatilidad ingresadas por el usuario"],
     ["Estimador de volatilidad", cfg.fuente === "serie" ? (cfg.volatilidad === "ewma" ? `EWMA con lambda = ${formatearNumero(cfg.lambda, 2)}` : "Desviación estándar muestral") : "No aplica"],
-    ["Tratamiento de la media", cfg.media === "con" ? "Incluida (VaR absoluto)" : "Media cero (VaR relativo)"],
+    ["Rendimiento esperado (μ)", cfg.media === "con" ? "Incluido (VaR absoluto)" : "Se asume μ = 0 (VaR relativo)"],
+    ["Punto de partida", `${PRESETS[cfg.preset || "personalizada"].nombre}. ${PRESETS[cfg.preset || "personalizada"].fuente}`],
+    ...(r.matriz && r.matriz.activos.length > 1 ? [["Activo analizado", `${cfg.activoColumna}, de una matriz con ${plural(r.matriz.activos.length, "activo", "activos")}: ${r.matriz.activos.map((a) => a.nombre).join(", ")}`]] : []),
     ["Media diaria usada", formatearPorcentaje(r.muUsada, 4)],
     ["Volatilidad diaria usada", formatearPorcentaje(r.sigma, 4)],
     ["Escalado al horizonte", `Raíz del tiempo: factor ${formatearNumero(Math.sqrt(cfg.horizonte), 4)}`]
@@ -2312,7 +2987,7 @@ function generarInformePDF(r = estado.resultados) {
   doc.tabla([{ titulo: "Elemento", ancho: 0.34 }, { titulo: "Valor", ancho: 0.66 }], filasModelo);
 
   // 4. Calidad del supuesto
-  doc.tituloSeccion("4. Calidad del supuesto de normalidad", 130);
+  doc.tituloSeccion("4. Diagnóstico del modelo", 130);
   if (r.normalidad) {
     const nn = r.normalidad;
     doc.tabla([{ titulo: "Indicador", ancho: 0.3 }, { titulo: "Valor", ancho: 0.16, alineacion: "der" }, { titulo: "Lectura", ancho: 0.54 }], [
@@ -2325,33 +3000,39 @@ function generarInformePDF(r = estado.resultados) {
   r.advertencias.forEach((a) => doc.parrafo(`Advertencia: ${a}`, { tamano: 8.6, color: COLORES_PDF.naranja, despues: 3 }));
 
   // 5. Robustez
-  doc.tituloSeccion("5. Robustez de la recomendación", 140);
+  doc.tituloSeccion("5. Robustez: ¿funcionó el modelo en el pasado?", 140);
   const btDisp = r.backtesting.filter((b) => b.disponible);
   if (btDisp.length) {
-    doc.tabla([{ titulo: "Confianza", ancho: 0.13, alineacion: "der" }, { titulo: "Días T", ancho: 0.11, alineacion: "der" }, { titulo: "Excepciones", ancho: 0.14, alineacion: "der" }, { titulo: "Esperadas", ancho: 0.13, alineacion: "der" }, { titulo: "LR", ancho: 0.11, alineacion: "der" }, { titulo: "Valor p", ancho: 0.12, alineacion: "der" }, { titulo: "Semáforo", ancho: 0.26 }],
-      btDisp.map((b) => [formatearNivel(b.c), String(b.T), String(b.x), formatearNumero(b.esperadas, 1), formatearNumero(b.lr, 3), { texto: formatearP(b.pValor), negrita: true, color: b.rechaza ? COLORES_PDF.coral : COLORES_PDF.verde }, { texto: textoZona(b.zona), negrita: true, color: { verde: COLORES_PDF.verde, amarilla: COLORES_PDF.naranja, roja: COLORES_PDF.coral }[b.zona] }]));
-    doc.parrafo(`Prueba de Kupiec (1995) sobre VaR de un día estimados con una ventana móvil de ${cfg.ventana} días. Un valor p menor que 0,05 indica que la frecuencia de excepciones no es coherente con el nivel de confianza.`, { tamano: 8.6, color: COLORES_PDF.tinta2 });
+    doc.parrafo(`Prueba de Kupiec (estadística). VaR de un día estimados con una ventana móvil de ${cfg.ventana} días; un valor p menor que 0,05 indica que la frecuencia de excepciones no es coherente con el nivel de confianza.`, { tamano: 8.8, color: COLORES_PDF.tinta2 });
+    doc.tabla([{ titulo: "Confianza", ancho: 0.13, alineacion: "der" }, { titulo: "Días T", ancho: 0.12, alineacion: "der" }, { titulo: "Excepciones", ancho: 0.14, alineacion: "der" }, { titulo: "Esperadas", ancho: 0.13, alineacion: "der" }, { titulo: "LR", ancho: 0.11, alineacion: "der" }, { titulo: "Valor p", ancho: 0.12, alineacion: "der" }, { titulo: "Decisión al 5 %", ancho: 0.25 }],
+      btDisp.map((b) => [formatearNivel(b.c), String(b.T), String(b.x), formatearNumero(b.esperadas, 1), formatearNumero(b.lr, 3), { texto: formatearP(b.pValor), negrita: true, color: b.rechaza ? COLORES_PDF.coral : COLORES_PDF.verde }, { texto: b.rechaza ? "Se rechaza" : "No se rechaza", negrita: true, color: b.rechaza ? COLORES_PDF.coral : COLORES_PDF.verde }]));
+    doc.parrafo("Semáforo de Basilea (supervisor). Clasifica las excepciones por su probabilidad binomial acumulada: verde bajo 95 %, amarilla hasta 99,99 %, roja desde ahí (BCBS, 1996).", { tamano: 8.8, color: COLORES_PDF.tinta2 });
+    doc.tabla([{ titulo: "Confianza", ancho: 0.2, alineacion: "der" }, { titulo: "Días T", ancho: 0.2, alineacion: "der" }, { titulo: "Excepciones", ancho: 0.2, alineacion: "der" }, { titulo: "Prob. acumulada", ancho: 0.2, alineacion: "der" }, { titulo: "Zona", ancho: 0.2 }],
+      btDisp.map((b) => [formatearNivel(b.c), String(b.T), String(b.x), formatearPorcentaje(b.acumulada), { texto: textoZona(b.zona), negrita: true, color: { verde: COLORES_PDF.verde, amarilla: COLORES_PDF.naranja, roja: COLORES_PDF.coral }[b.zona] }]));
   } else doc.parrafo(r.backtesting[0].motivo, { tamano: 9 });
   const lim = r.limites[r.limites.length - 1];
+  doc.tituloSeccion("6. Frontera de riesgo: ¿qué tendría que cambiar para alcanzar el límite?", 140);
+  if (!lim.hayLimite) doc.parrafo("No se definió un límite de riesgo, por lo que no se calcula la frontera.", { tamano: 9 });
   if (lim.hayLimite) {
-    doc.parrafo(`¿Qué tendría que cambiar para cruzar el límite de ${formatearDinero(lim.L, cfg.moneda)} al ${formatearNivel(lim.c)}?`, { tamano: 9.5, negrita: true });
+    doc.parrafo(`Límite: ${formatearDinero(lim.L, cfg.moneda)}. VaR al ${formatearNivel(lim.c)}: ${formatearDinero(lim.varDinero, cfg.moneda)} (${formatearPorcentaje(lim.uso, 1)} de uso). ${textoMargen(lim, cfg.moneda)}. Cada fila cambia una sola variable.`, { tamano: 9.2, negrita: true });
     const inf = (v, f) => (Number.isFinite(v) ? f(v) : "Sin límite");
     doc.tabla([{ titulo: "Variable", ancho: 0.34 }, { titulo: "Valor actual", ancho: 0.33, alineacion: "der" }, { titulo: "Valor que iguala el límite", ancho: 0.33, alineacion: "der" }], [
       ["Valor de la posición", formatearDinero(cfg.valor, cfg.moneda), inf(lim.posicionMax, (v) => formatearDinero(v, cfg.moneda))],
       ["Volatilidad diaria", formatearPorcentaje(r.sigma, 3), formatearPorcentaje(lim.sigmaMax, 3)],
       ["Nivel de confianza", formatearNivel(lim.c), lim.confianzaMax >= 0.99995 ? "Más de 99,99 %" : formatearPorcentaje(lim.confianzaMax)],
-      ["Horizonte", plural(cfg.horizonte, "día", "días"), inf(lim.horizonteMax, (v) => `${formatearNumero(v, 1)} días`)]
+      ["Horizonte", plural(cfg.horizonte, "día", "días"), inf(lim.horizonteMax, (v) => `${formatearNumero(v, 1)} días`)],
+      ["Margen frente al límite (L − VaR) / L", { texto: formatearPorcentaje(lim.margenPct, 1), negrita: true, color: lim.cumple ? COLORES_PDF.verde : COLORES_PDF.coral }, "0 %"]
     ]);
   }
 
   // 6. Nota metodológica
-  doc.tituloSeccion("6. Nota metodológica y referencias");
+  doc.tituloSeccion("7. Nota metodológica y referencias");
   [
     "El VaR paramétrico supone rendimientos normales. Con z = inversa de la normal estándar en c, el VaR como fracción de la posición es z * sigma * raiz(h) - mu * h y el Expected Shortfall es sigma * raiz(h) * phi(z) / (1 - c) - mu * h. En dinero se multiplican por el valor de la posición (aproximación lineal del método delta normal).",
     "La volatilidad EWMA sigue a RiskMetrics: sigma2(t) = lambda * sigma2(t-1) + (1 - lambda) * r2(t-1). El escalado a h días usa la regla de la raíz del tiempo, válida con rendimientos independientes e idénticamente distribuidos. El backtesting usa la razón de verosimilitud de Kupiec y el semáforo del Comité de Basilea basado en la probabilidad binomial acumulada.",
     "Los resultados describen el riesgo bajo los supuestos del modelo y deben leerse como apoyo a la decisión, no como sustituto del criterio profesional."
-  ].forEach((t) => doc.parrafo(t, { tamano: 8.8 }));
-  REFERENCIAS.forEach((ref) => doc.parrafo(ref, { tamano: 7.6, color: COLORES_PDF.tinta2, despues: 2 }));
+  ].forEach((t) => doc.parrafo(t, { tamano: 8.4, despues: 4 }));
+  REFERENCIAS.forEach((ref) => doc.parrafo(ref, { tamano: 7.2, color: COLORES_PDF.tinta2, despues: 1, interlineado: 1.3 }));
   doc.y += 10;
   const lineasNota = doc.envolver(APLICATIVO.nota, doc.anchoUtil - 28, 8.6);
   const altoNota = lineasNota.length * 12.5 + 30;
@@ -2436,14 +3117,32 @@ const ESCENARIOS = [
   { id: "mediano", nombre: "Mediano: 500 precios", detalle: "500 precios diarios simulados con distribución normal", serie: { semilla: 22, precios: 500, mu: 0.0004, sigma: 0.018 }, cfg: { niveles: "95; 99", horizonte: 10, volatilidad: "muestral", ventana: 250, limite: "12.000.000" } },
   { id: "colas", nombre: "Grande con colas gruesas: 2 000 precios", detalle: "2 000 precios simulados con t de Student de 4 grados de libertad", serie: { semilla: 33, precios: 2000, mu: 0.0002, sigma: 0.015, tipo: "t4" }, cfg: { niveles: "95; 99; 99,5", horizonte: 1, volatilidad: "muestral", ventana: 250, limite: "4.000.000" } },
   { id: "cambio", nombre: "Volatilidad cambiante: 800 precios", detalle: "800 precios simulados cuya volatilidad se triplica en el último 30 %", serie: { semilla: 44, precios: 800, mu: 0.0003, sigma: 0.01, tipo: "cambio" }, cfg: { niveles: "99", horizonte: 1, volatilidad: "muestral", ventana: 250, limite: "" } },
+  { id: "multi", nombre: "Ejemplo multiactivo: 3 activos", detalle: "matriz de 3 activos ficticios con 500 fechas comunes simuladas con distribución normal", matriz: { precios: 500, activos: [
+    { nombre: "Energía ficticia", semilla: 51, mu: 0.0003, sigma: 0.017, inicial: 1865 },
+    { nombre: "Transmisión ficticia", semilla: 52, mu: 0.0002, sigma: 0.012, inicial: 18240 },
+    { nombre: "Banca ficticia", semilla: 53, mu: 0.0001, sigma: 0.015, inicial: 46300 }] },
+    cfg: { niveles: "95; 99", horizonte: 1, volatilidad: "muestral", ventana: 250, limite: "4.000.000" } },
   { id: "libro", nombre: "Parámetros de libro", detalle: "media 0 % y volatilidad diaria 2 % ingresadas como parámetros", parametros: { mu: "0", sigma: "2" }, cfg: { niveles: "95; 99", horizonte: 10, volatilidad: "muestral", ventana: 250, limite: "150.000", valor: "1.000.000", moneda: "USD", media: "sin" } }
 ];
 
 function textoSerie({ precios, fechas }) { return precios.map((p, i) => `${fechaISO(fechas[i])};${formatearNumero(p, 2)}`).join("\n"); }
 
+/** Matriz de ejemplo con el estándar de datos: Fecha y una columna por activo. */
+function textoMatrizEjemplo(def = ESCENARIOS.find((x) => x.id === "multi").matriz) {
+  const series = def.activos.map((a) => generarSerie({ semilla: a.semilla, precios: def.precios, mu: a.mu, sigma: a.sigma, inicial: a.inicial }));
+  const filas = series[0].fechas.map((f, i) => [fechaISO(f), ...series.map((s) => formatearNumero(s.precios[i], 2))].join(";"));
+  return ["Fecha;" + def.activos.map((a) => a.nombre).join(";"), ...filas].join("\n");
+}
+
+/** «Cargar ejemplo» del paso 02: solo pone la matriz de ejemplo en Datos, sin tocar el modelo. */
+function cargarEjemploDatos() {
+  const e = ESCENARIOS.find((x) => x.id === "multi");
+  cargarTextoDatos(textoMatrizEjemplo(), { tipo: "prueba", detalle: `escenario «${e.nombre}»: ${e.detalle}` });
+  mostrarMensaje("advertencia", "Matriz de ejemplo cargada", ["Son datos ficticios. Revise la validación, elija el activo y pulse «Calcular el VaR»."], 5000);
+}
+
 function cargarEscenario(id, silencioso = false) {
   const e = ESCENARIOS.find((x) => x.id === id);
-  $("campoActivo").value = `Activo ficticio (${e.nombre.split(":")[0].toLowerCase()})`;
   $("campoValor").value = e.cfg.valor || "100.000.000";
   $("campoMoneda").value = e.cfg.moneda || "COP";
   $("campoHorizonte").value = e.cfg.horizonte;
@@ -2451,15 +3150,21 @@ function cargarEscenario(id, silencioso = false) {
   $("campoLimite").value = e.cfg.limite;
   $("campoVentana").value = e.cfg.ventana;
   $("campoLambda").value = "0,94";
+  fijarRadio("preset", "personalizada");
+  $("notaPreset").textContent = PRESETS.personalizada.fuente;
   fijarRadio("fuente", e.parametros ? "parametros" : "serie");
   fijarRadio("rendimiento", "log");
   fijarRadio("volatilidad", e.cfg.volatilidad);
   fijarRadio("media", e.cfg.media || "con");
   estado.origen = { tipo: "prueba", detalle: `escenario «${e.nombre}»: ${e.detalle}` };
   if (!confirmarConfiguracion(true)) return false;
+  estado.activoSeleccionado = 0;
+  estado.nombreManual = false;
   if (e.parametros) { $("campoMu").value = e.parametros.mu; $("campoSigma").value = e.parametros.sigma; }
-  else { $("campoSerie").value = textoSerie(generarSerie(e.serie)); revisarSerie(); }
+  else { $("campoSerie").value = e.matriz ? textoMatrizEjemplo(e.matriz) : textoSerie(generarSerie(e.serie)); revisarSerie(); }
+  if (!e.matriz) { $("campoActivo").value = `Activo ficticio (${e.nombre.split(":")[0].toLowerCase()})`; estado.nombreManual = true; }
   pintarOrigen();
+  actualizarPaneles();
   const ok = calcular();
   if (ok && !silencioso) { mostrarMensaje("advertencia", "Escenario de prueba cargado", ["Los datos son ficticios y así quedarán marcados en los archivos exportados."], 5000); $("seccionResultados").scrollIntoView(); }
   return ok;
@@ -2478,6 +3183,7 @@ function ejecutarPruebas() {
   };
   const guardado = {
     resultados: estado.resultados, origen: { ...estado.origen }, configuracion: estado.configuracion, confirmada: estado.configuracionConfirmada, serie: estado.serie,
+    matriz: estado.matriz, activo: estado.activoSeleccionado, nombreManual: estado.nombreManual, desactualizados: estado.resultadosDesactualizados, nivel: estado.nivelGrafico,
     campos: [...document.querySelectorAll("#seccionConfiguracion input, #seccionDatos input:not([type=file]), #seccionDatos textarea, #seccionDatos select")].map((el) => [el, el.type === "radio" ? el.checked : el.value])
   };
 
@@ -2571,7 +3277,7 @@ function ejecutarPruebas() {
     if (!bibliotecaExcelDisponible(false)) return { ok: null, detalle: "Omitida: SheetJS no está cargado (sin conexión)." };
     cargarEscenario("mediano", true);
     const wb = construirLibroExcel(estado.resultados);
-    const esperadas = ["Menu", "Datos", "Parametros", "VaR", "Backtesting_95", "Backtesting_99", "Robustez", "Resultado"];
+    const esperadas = ["Menu", "Datos", "Matriz", "Parametros", "VaR", "Backtesting_95", "Backtesting_99", "Robustez", "Resultado"];
     const faltan = esperadas.filter((h) => !wb.SheetNames.includes(h));
     const formula = (wb.Sheets.VaR.B5 || {}).f === "NORMSINV(A5)";
     const enlaces = Object.values(wb.Sheets.Menu).filter((c) => c && c.l).length;
@@ -2587,11 +3293,154 @@ function ejecutarPruebas() {
     return { ok: texto.startsWith("%PDF-1.4") && texto.trimEnd().endsWith("%%EOF") && paginas >= 2 && pies === paginas && marcas === paginas, detalle: `${paginas} páginas, ${pies} pies, ${marcas} marcas de agua` };
   });
 
+  /* ---------- Estándar de datos matricial (versión 2) ---------- */
+  const fechasTxt = (n, desde = 1) => Array.from({ length: n }, (_, i) => fechaISO(new Date(Date.UTC(2026, 0, desde + i))));
+  const matrizTxt = (enc, cols, n = 14, sep = ";", indice = "fecha") => [enc.join(sep), ...Array.from({ length: n }, (_, i) => [indice === "fecha" ? fechasTxt(n)[i] : String(i + 1), ...cols.map((c) => c(i))].join(sep))].join("\n");
+  const col = (base, paso) => (i) => String(base + paso * i + (i % 3) * 0.5).replace(".", ",");
+
+  prueba("Estándar de datos: Fecha + 1 activo", () => {
+    const m = leerMatriz(matrizTxt(["Fecha", "ECOPETROL"], [col(1865, 3)]));
+    return { ok: m.valida && m.indice.tipo === "fecha" && m.activos.length === 1 && m.activos[0].nombre === "ECOPETROL" && m.observaciones === 14, detalle: `${m.observaciones} observaciones, índice ${m.indice.tipo}, activo ${m.activos.map((a) => a.nombre)}` };
+  });
+  prueba("Estándar de datos: Fecha + 2 activos", () => {
+    const m = leerMatriz(matrizTxt(["Fecha", "ECOPETROL", "ISA"], [col(1865, 3), col(18240, -7)]));
+    return { ok: m.valida && m.activos.length === 2 && m.activos[1].precios[0] === 18240, detalle: m.activos.map((a) => `${a.nombre}: ${a.validas}`).join("; ") };
+  });
+  prueba("Estándar de datos: Fecha + 5 activos, con punto y coma y con coma", () => {
+    const cols = [col(10, 1), col(20, 1), col(30, 1), col(40, 1), col(50, 1)];
+    const a = leerMatriz(matrizTxt(["Fecha", "A", "B", "C", "D", "E"], cols));
+    const b = leerMatriz(matrizTxt(["Fecha", "A", "B", "C", "D", "E"], cols.map((f) => (i) => f(i).replace(",", ".")), 14, ","));
+    const igual = a.activos.every((x, k) => x.precios.every((v, i) => v === b.activos[k].precios[i]));
+    return { ok: a.valida && b.valida && a.activos.length === 5 && b.separador === "coma" && igual, detalle: `punto y coma: ${a.activos.length} activos; coma: ${b.activos.length} activos; valores iguales: ${igual}` };
+  });
+  prueba("Estándar de datos: Orden + 1 activo", () => {
+    const m = leerMatriz(matrizTxt(["Orden", "BTC"], [col(94320, 50)], 14, "\t", "orden"));
+    return { ok: m.valida && m.indice.tipo === "orden" && m.activos[0].nombre === "BTC", detalle: `índice ${m.indice.tipo}, separador ${m.separador}` };
+  });
+  prueba("Estándar de datos: Orden + varios activos", () => {
+    const m = leerMatriz(matrizTxt(["Orden", "X", "Y", "Z"], [col(10, 1), col(20, 1), col(30, 1)], 14, ";", "orden"));
+    const s = serieDeActivo(m, 2);
+    return { ok: m.valida && m.activos.length === 3 && s.valida && s.ordenes[0] === 1 && s.fechas === null, detalle: `${m.activos.length} activos, orden ${s.ordenes[0]} a ${s.ordenes[s.ordenes.length - 1]}` };
+  });
+  prueba("Validación: fecha duplicada con mensaje preciso", () => {
+    const m = leerMatriz(["Fecha;A", "2026-03-15;10", "2026-03-15;11", ...fechasTxt(12, 20).map((f, i) => `${f};${12 + i}`)].join("\n"));
+    const msg = m.errores.find((e) => /15\/03\/2026/.test(e)) || "";
+    return { ok: !m.valida && m.conteo.duplicados === 1 && /filas 2, 3/.test(msg), detalle: msg || m.errores.join(" ") };
+  });
+  prueba("Validación: valores faltantes se excluyen solo en su activo", () => {
+    const m = leerMatriz(matrizTxt(["Fecha", "A", "B"], [col(10, 1), (i) => (i % 5 === 0 ? "" : String(20 + i))]));
+    const a = serieDeActivo(m, 0), b = serieDeActivo(m, 1);
+    return { ok: m.valida && m.conteo.faltantes === 3 && a.precios.length === 14 && b.precios.length === 11 && b.avisos.some((x) => /3 observaciones vacías/.test(x)), detalle: `faltantes ${m.conteo.faltantes}; A usa ${a.precios.length} precios, B usa ${b.precios.length}` };
+  });
+  prueba("Validación: precio negativo con columna y fila", () => {
+    const m = leerMatriz(matrizTxt(["Fecha", "ECOPETROL", "ISA"], [col(10, 1), (i) => (i === 6 ? "-5" : String(20 + i))]));
+    const msg = m.errores[0] || "";
+    return { ok: !m.valida && /columna ISA/.test(msg) && /fila 8/.test(msg), detalle: msg };
+  });
+  prueba("Validación: valor no numérico con columna y fila", () => {
+    const m = leerMatriz(matrizTxt(["Fecha", "ECOPETROL", "ISA"], [col(10, 1), (i) => (i === 35 % 14 ? "abc" : String(20 + i))]));
+    const msg = m.errores[0] || "";
+    return { ok: !m.valida && m.conteo.invalidos === 1 && /La columna ISA contiene un valor no numérico en la fila 9/.test(msg), detalle: msg };
+  });
+  prueba("Validación: columnas incompletas", () => {
+    const texto = matrizTxt(["Fecha", "A", "B"], [col(10, 1), col(20, 1)]).split("\n").map((l, i) => (i === 5 ? l.split(";").slice(0, 2).join(";") : l)).join("\n");
+    const m = leerMatriz(texto);
+    const msg = m.errores[0] || "";
+    return { ok: !m.valida && /La fila 6 tiene 2 columnas y se esperaban 3/.test(msg), detalle: msg };
+  });
+  prueba("Encabezados personalizados y repetidos", () => {
+    const m = leerMatriz(matrizTxt(["Fecha", "ECOPETROL", "ISA", "PFBCOLOM", "BTC", "ISA"], [col(1, 1), col(2, 1), col(3, 1), col(4, 1), col(5, 1)]));
+    const n = m.activos.map((a) => a.nombre);
+    return { ok: m.valida && n.join("|") === "ECOPETROL|ISA|PFBCOLOM|BTC|ISA (2)", detalle: n.join(", ") };
+  });
+  prueba("Compatibilidad con los archivos de la versión 1", () => {
+    const p = Array.from({ length: 12 }, (_, i) => 4000 + i * 3 + 0.5);
+    const f = fechasTxt(12);
+    const formatos = {
+      "solo precios": p.map((v) => String(v).replace(".", ",")).join("\n"),
+      "fecha;precio": f.map((d, i) => `${d};${String(p[i]).replace(".", ",")}`).join("\n"),
+      "tabulación": f.map((d, i) => `${d}\t${p[i]}`).join("\n"),
+      "fecha,precio con coma decimal": f.map((d, i) => `${d},${String(p[i]).replace(".", ",")}`).join("\n"),
+      "encabezado Fecha;Precio": "Fecha;Precio\n" + f.map((d, i) => `${d};${p[i]}`).join("\n")
+    };
+    const fallan = Object.entries(formatos).filter(([, t]) => { const s = leerSerie(t); return !s.valida || s.precios.join() !== p.join(); }).map(([k]) => k);
+    const esc = generarSerie(ESCENARIOS[1].serie), s = leerSerie(textoSerie(esc));
+    const escOk = s.valida && s.precios.every((v, i) => v === esc.precios[i]);
+    return { ok: !fallan.length && escOk, detalle: fallan.length ? `Fallan: ${fallan.join(", ")}` : `${Object.keys(formatos).length} formatos y el texto de los escenarios se leen igual que en la versión 1` };
+  });
+  prueba("Cambio de activo sin recargar la matriz", () => {
+    cargarEscenario("multi", true);
+    const m = estado.matriz, antes = estado.resultados.cfg.activoColumna;
+    seleccionarActivo(1);
+    const marcado = estado.resultadosDesactualizados;
+    calcular(true);
+    return { ok: estado.matriz === m && marcado && antes === m.activos[0].nombre && estado.resultados.cfg.activoColumna === m.activos[1].nombre && $("campoActivo").value === m.activos[1].nombre,
+      detalle: `de ${antes} a ${estado.resultados.cfg.activoColumna}; resultados marcados como desactualizados: ${marcado}` };
+  });
+  prueba("Cada selección usa la columna correspondiente", () => {
+    cargarEscenario("multi", true);
+    const m = estado.matriz, cfg = { ...estado.configuracion };
+    const difs = m.activos.map((a, k) => {
+      seleccionarActivo(k); calcular(true);
+      const solo = leerSerie(m.indice.valores.map((f, i) => `${fechaISO(f)};${a.precios[i]}`).join("\n"));
+      const ref = calcularModelo({ ...cfg, activo: a.nombre }, solo);
+      return Math.max(...estado.resultados.filas.map((f, i) => Math.abs(f.varDinero - ref.filas[i].varDinero)));
+    });
+    const vars = new Set(m.activos.map((_, k) => (seleccionarActivo(k), calcular(true), estado.resultados.filas[0].varDinero.toFixed(2))));
+    return { ok: difs.every((d) => d === 0) && vars.size === m.activos.length, detalle: `diferencia máxima ${Math.max(...difs)}; ${vars.size} VaR distintos para ${m.activos.length} activos` };
+  });
+  prueba("Resultados de la versión 1 reproducidos exactamente", () => {
+    const ref = { mediano: [9175396.755614793, 11603085.598937036, 13134759.281157337, 15103513.556718288], libro: [104029.67757511152, 130457.41261047855, 147131.15823719112, 168562.9477712523] };
+    let peor = 0;
+    Object.entries(ref).forEach(([id, v]) => {
+      cargarEscenario(id, true);
+      const o = estado.resultados.filas.flatMap((f) => [f.varDinero, f.esDinero]);
+      o.forEach((x, i) => { peor = Math.max(peor, Math.abs(x - v[i]) / v[i]); });
+    });
+    cargarEscenario("mediano", true);
+    const bt = estado.resultados.backtesting.map((b) => `${b.x}/${b.T}`).join(" y ");
+    return { ok: peor < 1e-12 && bt === "11/249 y 3/249", detalle: `error relativo máximo ${peor.toExponential(2)}; backtesting ${bt}` };
+  });
+  prueba("Plantillas CSV y Excel con el mismo estándar", () => {
+    const csv = leerMatriz(textoPlantillaCSV());
+    const okCSV = csv.valida && csv.activos.length === 3 && csv.observaciones === 12 && csv.activos[0].precios[0] === 102.35;
+    if (!bibliotecaExcelDisponible(false)) return { ok: okCSV, detalle: `CSV: ${okCSV}; Excel omitido sin SheetJS` };
+    const wb = construirPlantillaExcel();
+    const ida = XLSX.read(XLSX.write(wb, { type: "array", bookType: "xlsx" }), { type: "array", cellDates: true });
+    const xl = leerMatriz(textoDesdeLibro(ida));
+    const igual = xl.activos.every((a, k) => a.precios.every((v, i) => v === csv.activos[k].precios[i])) && xl.indice.valores.every((f, i) => +f === +csv.indice.valores[i]);
+    return { ok: okCSV && wb.SheetNames.join() === "Datos,Instrucciones" && xl.valida && igual, detalle: `CSV: ${csv.activos.length} activos y ${csv.observaciones} filas; Excel: hojas ${wb.SheetNames.join(" y ")}, lectura idéntica: ${igual}` };
+  });
+  prueba("Presets: fijan solo sus parámetros y vuelven a Personalizada al editar", () => {
+    $("campoValor").value = "123.456";
+    aplicarPreset("riskmetrics");
+    const rm = valorRadio("volatilidad") === "ewma" && valorRadio("media") === "sin" && $("campoHorizonte").value === "1" && $("campoValor").value === "123.456" && presetCoincide("riskmetrics");
+    aplicarPreset("basilea");
+    const ba = $("campoNiveles").value === "99" && $("campoHorizonte").value === "10" && $("campoVentana").value === "250" && valorRadio("preset") === "basilea";
+    $("campoHorizonte").value = "5"; revisarPreset();
+    const vuelve = valorRadio("preset") === "personalizada";
+    return { ok: rm && ba && vuelve, detalle: `RiskMetrics: ${rm}; Basilea: ${ba}; vuelve a Personalizada: ${vuelve}` };
+  });
+  prueba("Margen frente al límite: dentro, exacto, excedido y sin límite", () => {
+    const base = { c: 0.99, mu: 0, sigma: 0.02, h: 1, V: 1e6 };
+    const v = 1e6 * varParametrico(base).varPct;
+    const [a, b, c, d] = [v * 1.25, v, v * 0.8, NaN].map((L) => analisisLimite({ ...base, L }));
+    const ok = a.margen > 0 && a.cumple && casi(a.margenPct, 0.2, 1e-12) && casi(b.margen, 0, 1e-6) && b.cumple && c.margen < 0 && !c.cumple && casi(c.margenPct, -0.25, 1e-12) && !d.hayLimite && d.margen === undefined && casi(a.margenPct, 1 - a.uso, 1e-15);
+    return { ok, detalle: `margen ${formatearPorcentaje(a.margenPct, 1)}, ${formatearPorcentaje(b.margenPct, 1)} y ${formatearPorcentaje(c.margenPct, 1)}; sin límite no hay margen` };
+  });
+
   // Restaurar lo que el usuario tenía antes de las pruebas
   guardado.campos.forEach(([el, v]) => { if (el.type === "radio") el.checked = v; else el.value = v; });
-  Object.assign(estado, { resultados: guardado.resultados, origen: guardado.origen, configuracion: guardado.configuracion, configuracionConfirmada: guardado.confirmada, serie: guardado.serie });
-  $("estadoConfirmacion").textContent = estado.configuracionConfirmada ? "Configuración confirmada" : "Sin confirmar";
-  if (estado.serie) revisarSerie(); else { $("calidadSerie").innerHTML = ""; $("graficoPrecios").hidden = true; }
+  Object.assign(estado, { resultados: guardado.resultados, origen: guardado.origen, configuracion: guardado.configuracion, configuracionConfirmada: guardado.confirmada, serie: guardado.serie,
+    matriz: guardado.matriz, activoSeleccionado: guardado.activo, nombreManual: guardado.nombreManual, resultadosDesactualizados: guardado.desactualizados, nivelGrafico: guardado.nivel });
+  $("estadoConfirmacion").textContent = estado.configuracionConfirmada ? "Modelo confirmado" : "Sin confirmar";
+  if (estado.configuracionConfirmada) $("estadoConfirmacion").dataset.tipo = "usuario"; else delete $("estadoConfirmacion").dataset.tipo;
+  $("notaPreset").textContent = PRESETS[valorRadio("preset")].fuente;
+  const nombreGuardado = $("campoActivo").value;
+  if ($("campoSerie").value.trim()) revisarSerie(); else { estado.matriz = null; estado.serie = null; ["calidadSerie", "vistaPrevia"].forEach((id) => ($(id).innerHTML = "")); $("graficoPrecios").hidden = $("bloqueSelector").hidden = true; }
+  $("campoActivo").value = nombreGuardado;
+  estado.resultados = guardado.resultados;
+  estado.resultadosDesactualizados = guardado.desactualizados;
   actualizarPaneles(); pintarOrigen(); mostrarResultados(); mostrarRobustez();
   estado.pruebas = P;
   pintarPruebas(P);
@@ -2600,56 +3449,68 @@ function ejecutarPruebas() {
 }
 
 function pintarPruebas(P) {
-  const ok = P.filter((p) => p.ok === true).length, omitidas = P.filter((p) => p.ok === null).length;
-  $("resumenPruebas").textContent = `${ok} de ${P.length - omitidas} pruebas superadas${omitidas ? `, ${omitidas} omitida` : ""}`;
-  $("resumenPruebas").dataset.tipo = ok === P.length - omitidas ? "usuario" : "prueba";
-  $("tablaPruebas").innerHTML = tablaHTML("Tabla 6. Resultado de las pruebas automáticas", [{ t: "N.º", num: true }, { t: "Prueba", envuelve: true }, { t: "Estado" }, { t: "Detalle", envuelve: true }],
-    P.map((p, i) => [String(i + 1), escaparHTML(p.nombre), `<span class="etiqueta-estado" data-e="${p.ok === true ? "ok" : p.ok === null ? "alerta" : "mal"}">${p.ok === true ? "Superada" : p.ok === null ? "Omitida" : "Fallida"}</span>`, escaparHTML(p.detalle)]));
+  const ok = P.filter((p) => p.ok === true).length, omitidas = P.filter((p) => p.ok === null).length, total = P.length - omitidas;
+  $("resumenPruebas").textContent = ok === total ? `Motor cuantitativo verificado: ${ok} de ${total} pruebas superadas${omitidas ? `, ${omitidas} omitida` : ""}` : `${total - ok} de ${total} pruebas fallaron`;
+  $("resumenPruebas").dataset.tipo = ok === total ? "usuario" : "prueba";
+  $("tablaPruebas").innerHTML = tablaHTML("Tabla 8. Resultado de las pruebas automáticas", [{ t: "N.º", num: true }, { t: "Prueba", envuelve: true }, { t: "Estado" }, { t: "Detalle", envuelve: true }],
+    P.map((p, i) => [String(i + 1), escaparHTML(p.nombre), `<span class="etiqueta-estado" data-e="${p.ok === true ? "ok" : p.ok === null ? "alerta" : "mal"}">${p.ok === true ? "✓ Superada" : p.ok === null ? "Omitida" : "! Fallida"}</span>`, escaparHTML(p.detalle)]));
 }
-
 /* =========================================================================
    18. INICIO
    ========================================================================= */
 
 function iniciar() {
-  document.title = `${APLICATIVO.nombre}: valor en riesgo paramétrico`;
+  document.title = `${APLICATIVO.nombre}: riesgo de mercado`;
   $("marcaNombre").textContent = APLICATIVO.nombre;
-  $("marcaVersion").textContent = `Versión ${APLICATIVO.version}`;
+  $("marcaVersion").textContent = `Riesgo de mercado · versión ${APLICATIVO.version}`;
   $("rielPie").textContent = `${APLICATIVO.autor}. Uso académico.`;
   $("notaAutoria").textContent = `${APLICATIVO.nombre} versión ${APLICATIVO.version}. ${APLICATIVO.nota}`;
   $("listaReferencias").innerHTML = REFERENCIAS.map((r) => `<p style="font-size:.88rem;color:var(--texto-2)">${escaparHTML(r)}</p>`).join("");
+  $("textoCita").textContent = `Gómez Rueda, M. S. (2026). ${APLICATIVO.nombre} (Versión ${APLICATIVO.version}) [Software]. ${APLICATIVO.sitio}`;
+  $("enlaceRepositorio").href = APLICATIVO.repositorio;
+  $("enlaceRepositorio").textContent = APLICATIVO.repositorio.replace("https://", "");
+  $("enlaceLicencia").href = `${APLICATIVO.repositorio}/blob/main/LICENSE.md`;
   $("botonesEscenarios").innerHTML = ESCENARIOS.map((e) => `<button class="boton" type="button" data-escenario="${e.id}">${escaparHTML(e.nombre)}</button>`).join("");
   $("botonesEscenarios").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => cargarEscenario(b.dataset.escenario)));
 
   $("rangoPortada").addEventListener("input", dibujarPortada);
   dibujarPortada();
+  $("botonEjemplo").addEventListener("click", () => cargarEscenario("multi"));
 
-  // Configuración
-  ["campoActivo", "campoValor", "campoMoneda", "campoHorizonte", "campoNiveles", "campoLimite", "campoLambda", "campoVentana"].forEach((id) => {
+  // Modelo: cualquier cambio deja el modelo sin confirmar y revisa el punto de partida
+  ["campoValor", "campoMoneda", "campoHorizonte", "campoNiveles", "campoLimite", "campoLambda", "campoVentana"].forEach((id) => {
     $(id).addEventListener("blur", () => leerConfiguracion());
-    $(id).addEventListener("input", () => { if (estado.configuracionConfirmada) { estado.configuracionConfirmada = false; $("estadoConfirmacion").textContent = "Cambios sin confirmar"; delete $("estadoConfirmacion").dataset.tipo; if (estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); } actualizarPaneles(); } });
+    $(id).addEventListener("input", modeloModificado);
   });
-  document.querySelectorAll('input[type="radio"]').forEach((el) => el.addEventListener("change", () => {
-    if (estado.configuracionConfirmada) { estado.configuracionConfirmada = false; $("estadoConfirmacion").textContent = "Cambios sin confirmar"; delete $("estadoConfirmacion").dataset.tipo; if (estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); } }
-    actualizarPaneles();
-  }));
+  ["rendimiento", "volatilidad", "media"].forEach((n) => document.querySelectorAll(`input[name="${n}"]`).forEach((el) => el.addEventListener("change", modeloModificado)));
+  document.querySelectorAll('input[name="preset"]').forEach((el) => el.addEventListener("change", () => { aplicarPreset(el.value); modeloModificado(); }));
   $("botonConfirmar").addEventListener("click", () => confirmarConfiguracion());
 
   // Datos
+  document.querySelectorAll('input[name="fuente"]').forEach((el) => el.addEventListener("change", () => {
+    actualizarPaneles();
+    if (estado.resultados && estado.resultados.cfg.fuente !== valorRadio("fuente")) { estado.resultadosDesactualizados = true; mostrarResultados(); actualizarEstadoPasos(); }
+  }));
   $("campoSerie").addEventListener("input", () => { marcarOrigenUsuario(); revisarSerie(); if (estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); actualizarEstadoPasos(); } });
-  $("campoOrden").addEventListener("change", revisarSerie);
-  $("campoArchivo").addEventListener("change", (e) => {
-    const archivo = e.target.files[0];
-    if (!archivo) return;
-    if (archivo.size > 5 * 1024 * 1024) { mostrarMensaje("error", "El archivo es demasiado grande", ["Use un archivo de menos de 5 MB con una o dos columnas."]); return; }
-    const lector = new FileReader();
-    lector.onload = () => { $("campoSerie").value = lector.result; estado.origen = { tipo: "usuario", detalle: `Archivo cargado por el usuario: ${archivo.name}` }; pintarOrigen(); revisarSerie(); };
-    lector.onerror = () => mostrarMensaje("error", "No se pudo leer el archivo", ["Verifique que sea un archivo de texto o CSV."]);
-    lector.readAsText(archivo);
+  $("campoOrden").addEventListener("change", () => { revisarSerie(); if (estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); } });
+  $("campoActivoSel").addEventListener("change", () => seleccionarActivo(+$("campoActivoSel").value));
+  $("campoActivo").addEventListener("input", () => {
+    estado.nombreManual = $("campoActivo").value.trim() !== "";
+    if (estado.resultados) { estado.resultadosDesactualizados = true; mostrarResultados(); actualizarEstadoPasos(); }
   });
-  $("botonLimpiarSerie").addEventListener("click", () => { $("campoSerie").value = ""; estado.origen = { tipo: "ninguno", detalle: "" }; pintarOrigen(); revisarSerie(); });
-  $("botonCalcularSerie").addEventListener("click", () => { if (calcular()) $("seccionResultados").scrollIntoView(); });
-  $("botonCalcularParametros").addEventListener("click", () => { if (estado.origen.tipo !== "prueba") estado.origen = { tipo: "usuario", detalle: "Parámetros digitados por el usuario" }; if (calcular()) $("seccionResultados").scrollIntoView(); });
+  $("campoArchivo").addEventListener("change", (e) => { leerArchivo(e.target.files[0]); e.target.value = ""; });
+  const zona = $("zonaCarga");
+  ["dragenter", "dragover"].forEach((ev) => zona.addEventListener(ev, (e) => { e.preventDefault(); zona.classList.add("arrastrando"); }));
+  ["dragleave", "drop"].forEach((ev) => zona.addEventListener(ev, (e) => { e.preventDefault(); zona.classList.remove("arrastrando"); }));
+  zona.addEventListener("drop", (e) => leerArchivo(e.dataTransfer.files[0]));
+  $("botonPlantillaCSV").addEventListener("click", descargarPlantillaCSV);
+  $("botonPlantillaExcel").addEventListener("click", descargarPlantillaExcel);
+  $("botonCargarEjemplo").addEventListener("click", cargarEjemploDatos);
+  $("botonLimpiarSerie").addEventListener("click", () => { $("campoSerie").value = ""; estado.origen = { tipo: "ninguno", detalle: "" }; estado.nombreManual = false; $("campoActivo").value = ""; pintarOrigen(); revisarSerie(); });
+  $("botonCalcularSerie").addEventListener("click", () => {
+    if (valorRadio("fuente") === "parametros" && estado.origen.tipo !== "prueba") estado.origen = { tipo: "usuario", detalle: "Parámetros digitados por el usuario" };
+    if (calcular()) $("seccionResultados").scrollIntoView();
+  });
   ["campoMu", "campoSigma"].forEach((id) => $(id).addEventListener("input", () => { if (estado.origen.tipo === "prueba") estado.origen = { tipo: "usuario", detalle: "Parámetros digitados por el usuario (partiendo de un escenario de prueba modificado)" }; }));
 
   // Robustez
@@ -2661,16 +3522,17 @@ function iniciar() {
     dibujarSensibilidad();
   }));
 
-  // Exportación y pruebas
+  // Informe y validación
   $("botonExcel").addEventListener("click", exportarExcel);
   $("botonPDF").addEventListener("click", exportarPDF);
   $("botonPruebas").addEventListener("click", () => {
     const P = ejecutarPruebas();
     const fallidas = P.filter((p) => p.ok === false).length;
-    mostrarMensaje(fallidas ? "error" : "exito", fallidas ? `${fallidas} pruebas fallaron` : "Todas las pruebas se superaron", [], 5000);
+    mostrarMensaje(fallidas ? "error" : "exito", fallidas ? `${fallidas} pruebas fallaron` : "Motor cuantitativo verificado", fallidas ? ["Revise el detalle en «Ver pruebas técnicas»."] : [], 5000);
   });
-  if (!bibliotecaExcelDisponible(false)) $("avisoExportacion").innerHTML = aviso("advertencia", "<p>SheetJS no se cargó (probablemente no hay conexión). El Excel no estará disponible; el PDF sí.</p>");
+  if (!bibliotecaExcelDisponible(false)) $("avisoExportacion").innerHTML = aviso("advertencia", "<p>SheetJS no se cargó (probablemente no hay conexión). El Excel, las plantillas de Excel y la lectura de archivos de Excel no estarán disponibles; el PDF, la plantilla CSV y la lectura de CSV sí.</p>");
 
+  $("notaPreset").textContent = PRESETS[valorRadio("preset")].fuente;
   actualizarPaneles();
   pintarOrigen();
   observarSecciones();
