@@ -869,7 +869,7 @@ td.envuelve { white-space: normal; min-width: 240px; }
       <div id="listaReferencias"></div>
     </details>
     <details>
-      <summary>Cómo citar, código fuente y licencia</summary>
+      <summary>Cómo citar</summary>
       <div>
         <p id="textoCita"></p>
       </div>
@@ -3465,9 +3465,6 @@ function iniciar() {
   $("notaAutoria").textContent = `${APLICATIVO.nombre} versión ${APLICATIVO.version}. ${APLICATIVO.nota}`;
   $("listaReferencias").innerHTML = REFERENCIAS.map((r) => `<p style="font-size:.88rem;color:var(--texto-2)">${escaparHTML(r)}</p>`).join("");
   $("textoCita").textContent = `Gómez Rueda, M. S. (2026). ${APLICATIVO.nombre} (Versión ${APLICATIVO.version}) [Software]. ${APLICATIVO.sitio}`;
-  $("enlaceRepositorio").href = APLICATIVO.repositorio;
-  $("enlaceRepositorio").textContent = APLICATIVO.repositorio.replace("https://", "");
-  $("enlaceLicencia").href = `${APLICATIVO.repositorio}/blob/main/LICENSE.md`;
   $("botonesEscenarios").innerHTML = ESCENARIOS.map((e) => `<button class="boton" type="button" data-escenario="${e.id}">${escaparHTML(e.nombre)}</button>`).join("");
   $("botonesEscenarios").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => cargarEscenario(b.dataset.escenario)));
 
